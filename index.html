@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data & Analytics Engineering Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F1; --surface:#FFFFFF; --ink:#1B2A3A; --muted:#5B6776; --line:#D6DCD8;
+  --raw:#6E7F6A; --bronze:#A5663A; --silver:#6F8190; --gold:#B8901C;
+  --done:#2F8F6B; --warn:#B4452F; --code-bg:#1E2B39; --code-ink:#E4E9EE; --focus:#2C6DB5;
+  --pipe:#C9D1CC;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121A22; --surface:#1A242F; --ink:#E6EBEF; --muted:#9AA7B3; --line:#2C3945;
+    --raw:#94A58F; --bronze:#D08A58; --silver:#9DB0BF; --gold:#DDB443;
+    --done:#4DBA90; --warn:#E07A62; --code-bg:#0E151C; --code-ink:#DCE3E9; --focus:#6FA8E8; --pipe:#34424F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121A22; --surface:#1A242F; --ink:#E6EBEF; --muted:#9AA7B3; --line:#2C3945;
+  --raw:#94A58F; --bronze:#D08A58; --silver:#9DB0BF; --gold:#DDB443;
+  --done:#4DBA90; --warn:#E07A62; --code-bg:#0E151C; --code-ink:#DCE3E9; --focus:#6FA8E8; --pipe:#34424F;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+img{max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:16px;height:60px}
+.brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:17px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(90deg,var(--raw) 0 25%,var(--bronze) 25% 50%,var(--silver) 50% 75%,var(--gold) 75%)}
+.bar-spacer{flex:1}
+.overall{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.overall-track{width:120px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.overall-fill{height:100%;background:var(--done);transition:width .4s}
+.save-state{font-size:13px;color:var(--muted)}
+@media (max-width:640px){.overall-track,.save-state{display:none}}
+
+/* hero */
+.hero{padding-block:56px 28px}
+.hero h1{font-size:clamp(34px,5.4vw,64px);font-weight:800;letter-spacing:-.02em;max-width:14ch}
+.hero p.lede{font-size:19px;color:var(--muted);max-width:58ch;margin:18px 0 26px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:12px 20px;font-weight:600;text-decoration:none;background:var(--ink);color:var(--paper)}
+.btn:hover{filter:brightness(1.12)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.good{background:var(--done);color:#fff}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* pipeline — the signature element */
+.pipeline{margin:44px 0 12px;position:relative}
+.pipe-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.pipe-line{position:absolute;left:12.5%;right:12.5%;top:34px;height:10px;border-radius:5px;background:var(--pipe)}
+.pipe-flow{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,var(--raw),var(--bronze),var(--silver),var(--gold));transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.packet{position:absolute;top:-5px;width:20px;height:20px;border-radius:50%;background:var(--surface);border:4px solid var(--ink);transform:translateX(-50%);transition:left .8s cubic-bezier(.2,.7,.2,1)}
+@media (prefers-reduced-motion:reduce){.pipe-flow,.packet,.overall-fill{transition:none}}
+.stage{position:relative;text-align:center;padding:0 8px;text-decoration:none;color:inherit;display:block}
+.stage-node{width:78px;height:78px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:3px solid var(--stage);position:relative;z-index:1;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;color:var(--stage)}
+.stage.locked .stage-node{border-style:dashed;color:var(--muted);border-color:var(--line)}
+.stage.done .stage-node{background:var(--stage);color:#fff}
+.stage h3{font-size:18px;margin-top:14px}
+.stage .layer{font-size:13px;color:var(--stage);font-weight:600}
+.stage.locked .layer{color:var(--muted)}
+.stage .stage-status{font-size:13px;color:var(--muted);margin-top:2px}
+a.stage:hover h3{text-decoration:underline}
+@media (max-width:700px){
+  .pipe-row{grid-template-columns:1fr;gap:18px}
+  .pipe-line{left:34px;right:auto;top:39px;bottom:39px;width:10px;height:auto}
+  .pipe-flow{width:100% !important;height:var(--flow-h,0%);right:0;bottom:auto}
+  .packet{display:none}
+  .stage{display:grid;grid-template-columns:78px 1fr;gap:16px;text-align:left;align-items:center;padding:0}
+  .stage-node{margin:0}
+  .stage h3{margin-top:0}
+}
+
+/* overview */
+.section-block{padding-block:40px;border-top:1px solid var(--line)}
+.section-block h2{font-size:28px;margin-bottom:18px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+@media (max-width:860px){.two-col{grid-template-columns:1fr;gap:24px}}
+.muted{color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-top:8px}
+.fact{border-left:3px solid var(--line);padding:4px 0 4px 14px}
+.fact strong{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:22px}
+.module-list{display:grid;gap:14px}
+.module-item{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--stage);border-radius:6px 12px 12px 6px;padding:18px 20px}
+.module-item h3{font-size:20px}
+.module-item ol{margin:10px 0 0;padding-left:20px;color:var(--muted);columns:2;column-gap:28px}
+@media (max-width:600px){.module-item ol{columns:1}}
+.module-item .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:13px;font-weight:600;color:var(--stage)}
+
+/* module layout */
+.module-layout{display:grid;grid-template-columns:290px 1fr;gap:36px;padding-block:28px 60px}
+@media (max-width:900px){.module-layout{grid-template-columns:1fr;gap:18px}}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start}
+@media (max-width:900px){.rail{position:static}}
+.rail-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.ring{--p:0;width:52px;height:52px;border-radius:50%;background:conic-gradient(var(--stage) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring span{width:40px;height:40px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-size:13px;font-weight:600}
+.rail-head h2{font-size:19px}
+.rail-head .layer{font-size:13px;color:var(--stage);font-weight:600}
+.steps{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);margin-left:9px}
+.steps li{position:relative}
+.steps a,.steps .step-locked{display:block;padding:9px 10px 9px 22px;text-decoration:none;border-radius:0 8px 8px 0;font-size:15px}
+.steps a:hover{background:color-mix(in srgb,var(--stage) 10%,transparent)}
+.steps a[aria-current="page"]{background:color-mix(in srgb,var(--stage) 16%,transparent);font-weight:600}
+.steps .step-locked{color:var(--muted);cursor:not-allowed}
+.steps li::before{content:"";position:absolute;left:-7px;top:15px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--line)}
+.steps li.done::before{background:var(--done);border-color:var(--done)}
+.steps li.open::before{border-color:var(--stage);background:var(--surface)}
+.steps .kind{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.steps .gate{margin-top:6px}
+.rail-back{display:inline-block;margin-top:18px;font-size:14px;color:var(--muted)}
+
+.content{min-width:0;max-width:760px}
+.content h1{font-size:clamp(28px,3.6vw,40px);letter-spacing:-.01em;margin:4px 0 8px}
+.meta-line{color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:22px}
+.content h2{font-size:21px;margin:32px 0 10px}
+.content p{margin:0 0 14px}
+.content ul.points{padding-left:20px;margin:0 0 14px}
+.content ul.points li{margin-bottom:6px}
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:18px 0}
+.callout.activity{border-left:5px solid var(--stage)}
+.callout h3{font-size:17px;margin-bottom:6px}
+pre.code{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:18px 20px;overflow-x:auto;font:13.5px/1.55 "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:12px 0 18px;tab-size:2}
+.code-cap{font-size:13px;color:var(--muted);margin-top:18px}
+code.inline{font:13.5px "JetBrains Mono",ui-monospace,monospace;background:color-mix(in srgb,var(--ink) 8%,transparent);padding:1px 5px;border-radius:4px}
+
+/* video */
+.video{margin:14px 0 20px;border-radius:14px;overflow:hidden;background:var(--code-bg);border:1px solid var(--line)}
+.video-frame{position:relative;aspect-ratio:16/9;width:100%}
+.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video-poster{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:22px;text-align:left;border:0;color:#fff;background:
+  radial-gradient(120% 90% at 85% 10%,color-mix(in srgb,var(--stage) 55%,transparent),transparent 60%),
+  linear-gradient(160deg,#1E2B39,#101820)}
+.video-poster .play{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.7);display:grid;place-items:center}
+.video-poster .play::after{content:"";margin-left:6px;border-left:22px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent}
+.video-poster:hover .play{background:rgba(255,255,255,.26)}
+.video-poster strong{font-family:"Bricolage Grotesque",sans-serif;font-size:19px;line-height:1.25}
+.video-poster span{font-size:13px;opacity:.8}
+.video-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 16px;font-size:13px;color:#C5CFD8;background:#16212C}
+.video-foot a{color:#fff}
+
+/* completion bar */
+.complete-bar{margin-top:36px;padding:20px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.complete-bar p{margin:0;color:var(--muted);font-size:14px;max-width:46ch}
+.done-badge{display:inline-flex;align-items:center;gap:8px;color:var(--done);font-weight:600}
+.done-badge::before{content:"";width:18px;height:18px;border-radius:50%;background:var(--done);box-shadow:inset 0 0 0 4px var(--surface)}
+
+/* test */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+.q.wrong{border-color:var(--warn);box-shadow:inset 4px 0 0 var(--warn)}
+.q.right{box-shadow:inset 4px 0 0 var(--done)}
+.q legend{font-weight:600;padding:0;margin-bottom:10px}
+.q fieldset{border:0;margin:0;padding:0}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;cursor:pointer}
+.opt:hover{background:color-mix(in srgb,var(--stage) 8%,transparent)}
+.opt input{margin-top:5px;accent-color:var(--stage)}
+.q .explain{font-size:14px;color:var(--muted);margin-top:8px}
+.result{padding:18px 20px;border-radius:12px;margin:18px 0;font-weight:500}
+.result.pass{background:color-mix(in srgb,var(--done) 14%,var(--surface));border:1px solid var(--done)}
+.result.fail{background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid var(--warn)}
+
+/* project */
+.checklist{list-style:none;padding:0;margin:10px 0 0}
+.checklist li{padding:6px 0}
+.checklist label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.checklist input{margin-top:5px;accent-color:var(--stage);width:16px;height:16px}
+.field{display:block;margin:16px 0}
+.field span{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.field input,.field textarea{width:100%;font:inherit;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.field textarea{min-height:110px;resize:vertical}
+.field small{color:var(--muted)}
+.err{color:var(--warn);font-size:14px;margin-top:6px}
+
+/* locked + certificate */
+.lock-note{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.cert{background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:44px 36px;text-align:center;margin:28px 0;position:relative;overflow:hidden}
+.cert::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(90deg,var(--raw) 0 25%,var(--bronze) 25% 50%,var(--silver) 50% 75%,var(--gold) 75%)}
+.cert h1{font-size:clamp(26px,4vw,40px);margin:10px 0}
+.cert .name{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(28px,5vw,46px);font-weight:800;margin:18px 0;border-bottom:2px solid var(--line);display:inline-block;padding:0 18px 6px;min-width:60%}
+/* trainer */
+.trainer-link{font-size:14px;font-weight:600;text-decoration:none;border:1.5px solid var(--line);border-radius:8px;padding:6px 10px}
+.trainer-link:hover{border-color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:22px 0 8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat strong{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:30px;line-height:1.1}
+.stat span{color:var(--muted);font-size:14px}
+.funnel{display:grid;gap:10px;margin:8px 0 6px}
+.funnel-row{display:grid;grid-template-columns:200px 1fr 70px;gap:12px;align-items:center;font-size:14px}
+.funnel-track{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.funnel-fill{height:100%;background:var(--stage)}
+@media (max-width:600px){.funnel-row{grid-template-columns:1fr 60px}.funnel-track{grid-column:1/-1;grid-row:2}}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:12px}
+table.roster{border-collapse:collapse;width:100%;min-width:860px;font-size:14px}
+.roster th,.roster td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.roster th{font-weight:600;color:var(--muted);background:color-mix(in srgb,var(--ink) 3%,var(--surface));white-space:nowrap}
+.roster th button{background:none;border:0;padding:0;color:inherit;font-weight:600}
+.roster tr:last-child td{border-bottom:0}
+.roster a.who{font-weight:600}
+.cell-sub{display:block;color:var(--muted);font-size:12.5px}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.pill.ok{background:color-mix(in srgb,var(--done) 18%,transparent);color:var(--done)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill.wait{background:color-mix(in srgb,var(--gold) 22%,transparent);color:color-mix(in srgb,var(--gold) 70%,var(--ink))}
+.mini-bar{width:90px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.mini-bar div{height:100%;background:var(--done)}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:28px}
+.toolbar input{font:inherit;padding:9px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);min-width:220px}
+.mod-card{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--stage);border-radius:6px 12px 12px 6px;padding:18px 20px;margin:16px 0}
+.mod-card h3{font-size:19px;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;font-size:14.5px;margin:10px 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.review-box{border-top:1px dashed var(--line);margin-top:14px;padding-top:14px}
+.review-box .opts{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 10px}
+.review-box label.r{display:flex;gap:8px;align-items:center;cursor:pointer}
+.feedback{border-radius:12px;padding:16px 18px;margin:18px 0;border:1px solid var(--line);background:var(--surface)}
+.feedback.ok{border-color:var(--done)}
+.feedback.warn{border-color:var(--warn)}
+.feedback h3{font-size:16px;margin-bottom:4px}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#/"><span class="brand-mark" aria-hidden="true"></span>Data &amp; Analytics Engineering</a>
+    <span class="bar-spacer"></span>
+    <a class="trainer-link" id="trainerLink" href="#/trainer" hidden>Trainer dashboard</a>
+    <span class="save-state" id="saveState">Progress saved in this browser</span>
+    <div class="overall" aria-label="Course progress">
+      <div class="overall-track"><div class="overall-fill" id="overallFill" style="width:0%"></div></div>
+      <span id="overallText">0%</span>
+    </div>
+  </div>
+</header>
+
+<main id="app" tabindex="-1"></main>
+
+<footer>
+  <div class="wrap">
+    <span>A four-week intensive built on ShopLink Distribution, one fictional Lagos electronics distributor, from first query to production platform.</span>
+    <button class="linkish" id="resetBtn" type="button">Reset my progress</button>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   COURSE CONTENT
+   ============================================================ */
+const COURSE = [
+{
+  id:"m1", title:"Foundations", layer:"Raw layer", color:"--raw",
+  summary:"Answer any business question in SQL and redesign an operational schema as a star schema with history tracking.",
+  sections:[
+    {
+      id:"s1", title:"The data landscape and tooling", mins:90,
+      intro:"Operational systems like an ERP are built for many small writes: create one order, update one status. Analytical systems are built for a few very large reads: revenue by state across three years. Data engineers move data from the first kind to the second; analytics engineers shape it so the business can trust it.",
+      points:[
+        "OLTP systems optimise for writes and consistency; OLAP systems optimise for scans and aggregation.",
+        "Data engineers own pipelines and platforms; analytics engineers own tested business models and metrics; analysts own insight.",
+        "Everything in this course runs on the ShopLink dataset: customers, products, warehouses, orders and order lines."
+      ],
+      setup:{
+        title:"Install Docker, Git and Python before the first session",
+        intro:"Every lab in this course runs inside Docker, so nothing else has to be installed natively. Do this before class starts, not during it — a room of people downloading Docker at once will cost you the first morning.",
+        groups:[
+          {on:"Windows 10 or 11", steps:[
+            "Install Docker Desktop from docker.com/products/docker-desktop. Accept the WSL 2 prompt and restart when asked.",
+            "Open Docker Desktop once and leave it running. The whale icon in the system tray must be steady, not animating.",
+            "Install Git from git-scm.com, and Python 3.11 or newer from python.org, ticking 'Add Python to PATH' during setup.",
+            "Run the course commands in Git Bash or PowerShell, not the old Command Prompt."
+          ]},
+          {on:"macOS", steps:[
+            "Install Docker Desktop from docker.com, choosing the Apple silicon or Intel build that matches your Mac.",
+            "Open Docker Desktop once and wait until it reports Running.",
+            "Install the rest with Homebrew: brew install git python@3.11"
+          ]},
+          {on:"Linux (Ubuntu or Debian)", steps:[
+            "Install Docker Engine and the Compose plugin from the official apt repository, following docs.docker.com/engine/install.",
+            "Run: sudo usermod -aG docker $USER — then log out and back in, so docker works without sudo.",
+            "Install the rest: sudo apt install git python3 python3-venv python3-pip"
+          ]},
+          {on:"Then check it worked", steps:[
+            "docker --version and docker compose version should each print a version. Mind the space: it is docker compose, not docker-compose.",
+            "docker run --rm hello-world should print a welcome message and exit cleanly.",
+            "git --version and python --version should report Python 3.11 or newer."
+          ]}
+        ],
+        note:"Stuck? Docker Desktop's own Troubleshoot menu has a Reset to factory defaults that clears most first-install problems, and the course stack can be rebuilt from scratch at any time with docker compose down -v && docker compose up -d."
+      },
+      codeCap:"Check the prerequisites, bring up the stack, and confirm the seed data loaded",
+      code:`# 0. prerequisites — each of these must print a version
+docker --version && docker compose version
+git --version && python --version
+
+# 1. get the course repo and start PostgreSQL in Docker
+git clone https://github.com/your-org/shoplink-course.git
+cd shoplink-course
+docker compose up -d
+docker compose ps          # postgres should show "running"
+
+# 2. create the Python environment
+python -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\\Scripts\\Activate.ps1
+pip install -r requirements.txt
+
+# 3. confirm the seed data loaded
+psql postgresql://shoplink:shoplink@localhost:5432/shoplink \\
+  -c "select count(*) from app.orders;"`,
+      activity:{title:"Follow the Naira (30 min)", body:"In groups of three, trace one laptop sale from the reseller's WhatsApp message to the CEO's monthly revenue slide. Draw every system and hand-off, then mark one place the number could go wrong. Those failure points are what the next four weeks teach you to prevent."},
+      lab:"Run the stack, commit a README describing the five ShopLink tables to a new GitHub repo."
+    },
+    {
+      id:"s2", title:"SQL core", mins:180,
+      intro:"SQL executes in a logical order that differs from how it is written: FROM, JOIN, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT. Knowing this order explains most beginner errors, such as why a SELECT alias cannot be used in WHERE.",
+      points:[
+        "INNER joins drop unmatched rows; LEFT joins keep every row from the left table.",
+        "An anti-join (LEFT JOIN ... WHERE right.key IS NULL) finds records with no match, such as customers who never ordered.",
+        "WHERE city <> 'Lagos' silently drops NULL cities. Use IS DISTINCT FROM when NULLs should be kept."
+      ],
+      video:{id:"HXV3zeQKqGY", title:"SQL Tutorial: Full Database Course for Beginners", channel:"freeCodeCamp.org", note:"Watch 1:56:11 to 3:21:52 (queries, functions, joins, nested queries)."},
+      codeCap:"Revenue by warehouse for delivered orders in 2025",
+      code:`SELECT  w.warehouse_name,
+        COUNT(DISTINCT o.order_id) AS orders,
+        SUM(ol.quantity * ol.unit_price * (1 - ol.discount_pct/100)) AS net_revenue
+FROM    app.orders o
+JOIN    app.order_lines ol ON ol.order_id = o.order_id
+JOIN    app.warehouses  w  ON w.warehouse_id = o.warehouse_id
+WHERE   o.status = 'Delivered'
+  AND   o.order_date >= DATE '2025-01-01'
+  AND   o.order_date <  DATE '2026-01-01'
+GROUP BY w.warehouse_name
+ORDER BY net_revenue DESC;`,
+      activity:{title:"Join Tag (25 min)", body:"Using printed cards for 5 customers and 7 orders (including one orphan order and one customer with no orders), groups physically arrange the result of INNER, LEFT, RIGHT and FULL joins, then write the matching SQL."},
+      lab:"Top 5 products by units in 2025; orders per status per month; customers with lifetime spend above ₦10,000,000."
+    },
+    {
+      id:"s3", title:"CTEs and window functions", mins:180,
+      intro:"A window function calculates across related rows without collapsing them the way GROUP BY does. The pattern is function() OVER (PARTITION BY ... ORDER BY ...). CTEs let you name each step of a query so complex logic reads top to bottom.",
+      points:[
+        "ROW_NUMBER picks one row per group: deduplication and 'latest record per key'.",
+        "RANK leaves gaps after ties; DENSE_RANK does not. Use them for top-N per group.",
+        "LAG and LEAD compare a row with the previous or next row: month-over-month change, days between orders."
+      ],
+      video:{id:"Ww71knvhQ-s", title:"SQL Window Function: RANK, DENSE_RANK, ROW_NUMBER, LEAD, LAG", channel:"techTFQ", note:"Watch in full before the Human Window Function activity."},
+      codeCap:"Monthly revenue with running total and month-over-month change",
+      code:`WITH monthly AS (
+  SELECT date_trunc('month', o.order_date)::date AS month,
+         SUM(ol.quantity * ol.unit_price)       AS revenue
+  FROM app.orders o
+  JOIN app.order_lines ol USING (order_id)
+  WHERE o.status <> 'Cancelled'
+  GROUP BY 1
+)
+SELECT month, revenue,
+       SUM(revenue) OVER (ORDER BY month)           AS running_total,
+       revenue - LAG(revenue) OVER (ORDER BY month) AS mom_change
+FROM monthly
+ORDER BY month;`,
+      activity:{title:"Human Window Function (20 min)", body:"Ten learners stand in a line holding a month and a revenue figure. The instructor calls LAG, running SUM, RANK and PARTITION BY region; each learner computes and calls out their value."},
+      lab:"Days between consecutive orders per customer; a first-order-month cohort table showing repeat buyers in months 1 to 3."
+    },
+    {
+      id:"s4", title:"Relational modeling and performance", mins:150,
+      intro:"Normalization puts each fact in exactly one place so updates cannot contradict each other. Indexes make reads fast at the cost of slower writes, and EXPLAIN ANALYZE shows whether the database scanned the whole table or used an index.",
+      points:[
+        "1NF: atomic values. 2NF: no dependency on part of a composite key. 3NF: no dependency between non-key columns.",
+        "Composite indexes follow column order: (customer_id, order_date) helps filters on customer, or customer and date.",
+        "Read the plan before adding an index; a Seq Scan on a large table in a frequent query is the usual culprit."
+      ],
+      codeCap:"Diagnose and fix a slow query",
+      code:`EXPLAIN ANALYZE
+SELECT * FROM app.orders
+WHERE customer_id = 42 AND order_date >= '2025-06-01';
+-- Seq Scan on orders  → full table scan
+
+CREATE INDEX idx_orders_customer_date
+  ON app.orders (customer_id, order_date);
+
+EXPLAIN ANALYZE
+SELECT * FROM app.orders
+WHERE customer_id = 42 AND order_date >= '2025-06-01';
+-- Index Scan using idx_orders_customer_date`,
+      activity:{title:"Spreadsheet Surgery (30 min)", body:"Groups receive one flat export with columns such as OrderNo, CustomerName, CustomerPhone, Product1, Qty1, Product2, Qty2, WarehouseCity, and normalize it to 3NF on paper, naming every primary and foreign key."},
+      lab:"Find and fix the three slowest queries in the provided workload using EXPLAIN ANALYZE."
+    },
+    {
+      id:"s5", title:"Dimensional modeling", mins:180,
+      intro:"Kimball's method has four steps: choose the business process, declare the grain, identify dimensions, identify facts. The grain statement, such as 'one row per order line', is the most important sentence in any model because every measure must be true at that grain.",
+      points:[
+        "Facts hold numeric measurements; dimensions hold the context you filter and group by.",
+        "Dimensions join on surrogate keys so history can be tracked without changing the business key.",
+        "SCD Type 1 overwrites, Type 2 adds a new row with validity dates, Type 3 keeps the previous value in a column."
+      ],
+      video:{id:"TtxfKIe0HuQ", title:"BI Data Modeling Explained: Star Schema, Snowflake & Galaxy", channel:"Data with Baraa", note:"Short visual primer on facts, dimensions and schema shapes."},
+      codeCap:"SCD Type 2: a customer moves from Aba to Lagos",
+      code:`-- 1. Expire the current row
+UPDATE mart.dim_customer
+SET    valid_to = now(), is_current = FALSE
+WHERE  customer_id = 4 AND is_current;
+
+-- 2. Insert the new version
+INSERT INTO mart.dim_customer
+  (customer_id, customer_name, customer_type, city, state, valid_from)
+VALUES
+  (4, 'Aba Phone Hub', 'Reseller', 'Lagos', 'Lagos', now());`,
+      activity:{title:"Grain Court (30 min)", body:"The instructor reads out fact tables with a deliberate grain error, such as 'one row per order, with a product_name column'. Teams argue prosecution and defence; the losing team fixes the design."},
+      lab:"Design fct_order_lines and its four dimensions, and write the grain statement."
+    }
+  ],
+  test:[
+    {q:"Why can't a column alias defined in SELECT be used in the WHERE clause?", o:["Aliases are only allowed in ORDER BY","WHERE is evaluated before SELECT in SQL's logical order","PostgreSQL does not support aliases","Aliases must be quoted in WHERE"], a:1, e:"WHERE runs before SELECT, so the alias does not exist yet."},
+    {q:"Which query finds customers who have never placed an order?", o:["INNER JOIN orders and filter order_id IS NULL","LEFT JOIN orders and filter orders.order_id IS NULL","RIGHT JOIN customers and filter customer_id IS NULL","CROSS JOIN orders and count"], a:1, e:"An anti-join keeps all customers and keeps only those with no matching order."},
+    {q:"Three products tie for second place. What does DENSE_RANK give the next product?", o:["5","3","4","2"], a:1, e:"DENSE_RANK leaves no gaps, so the next rank is 3. RANK would give 5."},
+    {q:"Which function best compares each month's revenue with the month before?", o:["ROW_NUMBER","NTILE","LAG","DENSE_RANK"], a:2, e:"LAG returns the previous row's value in the window order."},
+    {q:"A fact table has one row per order and also a product_name column. What is wrong?", o:["Nothing, it is a valid star schema","The grain is violated because an order can contain several products","Fact tables cannot contain text","It needs a surrogate key"], a:1, e:"Product is only true at order-line grain, so the stated grain and the columns disagree."},
+    {q:"A customer changes region and reports must show sales under the region at the time of sale. Which SCD type?", o:["Type 1","Type 2","Type 3","No SCD needed"], a:1, e:"Type 2 keeps a row per version with validity dates, preserving history."},
+    {q:"WHERE city <> 'Lagos' returns fewer rows than expected. The most likely cause?", o:["An index is missing","Rows with a NULL city are excluded","The comparison is case sensitive","The table is not analyzed"], a:1, e:"Comparisons with NULL are unknown, so those rows drop out. Use IS DISTINCT FROM."}
+  ],
+  project:{
+    title:"ShopLink Sales Data Mart",
+    brief:"Using SQL scripts only, build a sales data mart from the app schema: mart.dim_customer (SCD Type 2), dim_product, dim_warehouse, dim_date and fct_order_lines. Then answer ShopLink's ten core business questions against the mart.",
+    deliverables:[
+      "DDL and load scripts for all four dimensions and the fact table",
+      "An ERD image and a one-line grain statement for the fact table",
+      "SQL answers: revenue by month, state and category; gross margin by brand; top 10 customers",
+      "SQL answers: average order value by customer type; cancellation rate by warehouse; repeat-purchase rate",
+      "SQL answers: revenue share of the top 20% of customers; month with the highest discount spend",
+      "A demonstration that a customer city change creates a new dimension row"
+    ]
+  }
+},
+{
+  id:"m2", title:"Data Engineering", layer:"Bronze layer", color:"--bronze",
+  summary:"Move data reliably from APIs and databases into a warehouse, on a schedule, safe to rerun and quick to fail loudly.",
+  sections:[
+    {
+      id:"s1", title:"Python for data", mins:150,
+      intro:"Data engineers use Python as glue: calling APIs, reading files, validating records and loading databases. pandas is the standard; Polars and DuckDB are faster for larger files. Parquet is columnar and compressed, typically several times smaller than CSV and far quicker to query.",
+      points:[
+        "Normalise text before deduplicating, or 'Aba Phone Hub' and 'aba phone hub ' count as two customers.",
+        "Quarantine rows you cannot parse instead of dropping them silently.",
+        "Write cleaned output to Parquet; DuckDB can query Parquet files directly with SQL."
+      ],
+      video:{id:"vmEHCJofslg", title:"Complete Python Pandas Data Science Tutorial", channel:"Keith Galli", note:"Covers loading, filtering, grouping and cleaning DataFrames."},
+      codeCap:"Clean the messy customer extract",
+      code:`import pandas as pd
+
+df = pd.read_csv("data/raw/customers_extract.csv")
+df["customer_name"] = df["customer_name"].str.strip().str.title()
+df["city"] = df["city"].fillna("Unknown")
+df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce")
+
+df = (df.sort_values("updated_at")
+        .drop_duplicates(subset="customer_name", keep="last"))
+
+bad = df[df["created_at"].isna()]
+print(f"{len(bad)} rows quarantined")
+df.dropna(subset=["created_at"]).to_parquet("data/silver/customers.parquet", index=False)`,
+      activity:{title:"Format Race (20 min)", body:"Teams save the same one-million-row order-lines dataset as CSV, JSON and Parquet, then record file size and the time to compute total revenue. Results go on a shared board."},
+      lab:"Clean the customers and order-lines extracts and write both to Parquet."
+    },
+    {
+      id:"s2", title:"Ingestion patterns", mins:180,
+      intro:"A full load copies everything each run: simple but slow. An incremental load copies only rows changed since the last run, tracked by a watermark, usually updated_at. Change data capture reads the database log and also catches deletes, which watermarks miss.",
+      points:[
+        "Land raw responses untouched in bronze so you can replay without calling the source again.",
+        "Retry 429 and 5xx responses with exponential backoff; fail fast on 4xx errors.",
+        "Advance the watermark only after every page has landed successfully."
+      ],
+      codeCap:"Incremental extractor core: paginate, back off, then advance the watermark",
+      code:`def fetch_page(params, attempts=5):
+    for i in range(attempts):
+        r = requests.get(BASE_URL, params=params, timeout=30)
+        if r.status_code == 429 or r.status_code >= 500:
+            time.sleep(2 ** i)          # 1, 2, 4, 8, 16 seconds
+            continue
+        r.raise_for_status()
+        return r.json()
+    raise RuntimeError("Gave up after retries")
+
+since, page, max_seen = get_watermark(), 1, get_watermark()
+while body := fetch_page({"updated_since": since, "page": page})["data"]:
+    write_bronze(page, body)
+    max_seen = max(max_seen, max(r["updated_at"] for r in body))
+    page += 1
+save_watermark(max_seen)   # only after all pages landed`,
+      activity:{title:"Watermark Whodunit (25 min)", body:"The extractor ran at 02:00. An order was updated at 01:59:59 but committed at 02:00:03, and the next run used updated_at > last_run_time. Groups find the lost record and propose a fix, such as an overlap window plus downstream deduplication."},
+      lab:"Pull orders incrementally from the mock ShopLink API into data/bronze."
+    },
+    {
+      id:"s3", title:"Layers and idempotency", mins:150,
+      intro:"The medallion pattern separates bronze (raw, as received), silver (cleaned and deduplicated) and gold (business-ready). A pipeline is idempotent when running it twice for the same input produces the same result, which is what makes retries and backfills safe.",
+      points:[
+        "Delete-then-insert a date partition inside one transaction: all or nothing.",
+        "Upserts should ignore stale rows: only overwrite when the incoming updated_at is newer.",
+        "Prove idempotency with row counts and sums from two consecutive runs."
+      ],
+      codeCap:"Idempotent load for one date, in a single transaction",
+      code:`from sqlalchemy import create_engine, text
+
+engine = create_engine("postgresql+psycopg://shoplink:shoplink@localhost:5432/shoplink")
+
+def load_orders_for_date(df, run_date):
+    with engine.begin() as conn:   # commits or rolls back as one unit
+        conn.execute(text("DELETE FROM silver.orders WHERE order_date = :d"),
+                     {"d": run_date})
+        df.to_sql("orders", conn, schema="silver",
+                  if_exists="append", index=False)`,
+      activity:{title:"Run It Twice (20 min)", body:"Each learner runs a deliberately broken loader (plain INSERT) twice and counts the rows, then fixes it and proves the count is stable. Discuss what happens if the job crashes halfway."},
+      lab:"Make the order-lines loader idempotent per order_date and show identical counts across two runs."
+    },
+    {
+      id:"s4", title:"Orchestration with Airflow", mins:180,
+      intro:"An orchestrator runs tasks in dependency order on a schedule, retries failures and alerts people. A DAG defines the tasks and their dependencies, and Airflow's logical date ({{ ds }}) is what lets you backfill any past day with the same code.",
+      points:[
+        "Set retries with a delay and an on-failure callback on every DAG.",
+        "catchup=True plus idempotent tasks makes backfills a one-line command.",
+        "Keep max_active_runs=1 when runs share tables, to avoid overlapping writes."
+      ],
+      video:{id:"K9AnJ9_ZAXE", title:"Airflow Tutorial for Beginners: Full Course in 2 Hours", channel:"coder2j", note:"Focus on DAGs, operators, catchup and backfill."},
+      codeCap:"The ShopLink daily DAG",
+      code:`with DAG(
+    dag_id="shoplink_daily",
+    start_date=datetime(2025, 1, 1),
+    schedule="0 2 * * *",
+    catchup=True,
+    max_active_runs=1,
+    default_args={"retries": 3, "retry_delay": timedelta(minutes=5),
+                  "on_failure_callback": notify_failure},
+) as dag:
+    extract = PythonOperator(task_id="extract_orders", python_callable=extract_orders,
+                             op_kwargs={"run_date": "{{ ds }}"})
+    load = PythonOperator(task_id="load_silver", python_callable=load_orders_for_date,
+                          op_kwargs={"run_date": "{{ ds }}"})
+    transform = BashOperator(task_id="dbt_build",
+                             bash_command="cd /opt/dbt && dbt build")
+    extract >> load >> transform`,
+      activity:{title:"Be the Scheduler (25 min)", body:"Arrange eight task cards (extracts, loads, dimension and fact builds, dashboard refresh, report) into a valid DAG with maximum parallelism. The instructor then fails one task: which downstream tasks must not run?"},
+      lab:"Run the DAG in Docker and backfill 1–7 June 2025 without duplicates."
+    },
+    {
+      id:"s5", title:"Data quality at ingestion", mins:150,
+      intro:"Catch bad data at the door, before it reaches an executive dashboard. Validate schema, types, ranges and uniqueness, and route failing records to a quarantine table with a reason rather than failing the whole load or dropping them.",
+      points:[
+        "Record-level validation (Pydantic) catches bad values; table-level checks catch duplicates, orphans and staleness.",
+        "Fail the run when the quarantine rate crosses a threshold, such as 2%.",
+        "Every alert should name the task, the check and the date."
+      ],
+      codeCap:"Record-level validation with a quarantine",
+      code:`class OrderLine(BaseModel):
+    order_line_id: int
+    order_id: int
+    product_id: int
+    quantity: int = Field(gt=0)
+    unit_price: float = Field(ge=0)
+    discount_pct: float = Field(ge=0, le=100)
+
+def validate(records):
+    good, bad = [], []
+    for r in records:
+        try:
+            good.append(OrderLine(**r).model_dump())
+        except ValidationError as e:
+            bad.append({**r, "error": str(e)})
+    return good, bad`,
+      activity:{title:"Chaos Monkey (40 min)", body:"The instructor secretly renames a column, sends negative quantities, duplicates an API page and takes the API offline for two minutes. Learners detect, diagnose and explain each failure. One point per failure caught automatically."},
+      lab:"Add validation, a quarantine table and a 2% quarantine-rate check to your pipeline."
+    }
+  ],
+  test:[
+    {q:"What does an idempotent pipeline guarantee?", o:["It runs faster on each retry","Running it twice for the same input gives the same result","It never fails","It processes only new data"], a:1, e:"Idempotency makes retries and backfills safe."},
+    {q:"When should an incremental extractor advance its watermark?", o:["Before the first request","After each page is requested","After every page has landed successfully","At midnight"], a:2, e:"Advancing early risks skipping records if a later page fails."},
+    {q:"Which change is missed by a watermark on updated_at but caught by CDC?", o:["Inserts","Updates","Hard deletes","Schema changes to types"], a:2, e:"A deleted row has no updated_at to find; CDC reads it from the log."},
+    {q:"Why keep raw API responses unchanged in bronze?", o:["It is required by Airflow","You can replay transformations without calling the source again","Parquet cannot store JSON","It makes dashboards faster"], a:1, e:"Bronze is your replayable source of truth."},
+    {q:"In Airflow, what makes backfilling past dates possible?", o:["The logical date template such as {{ ds }} passed to idempotent tasks","Setting retries to 0","Using BashOperator only","Running the scheduler twice"], a:0, e:"Tasks parameterised by the logical date can process any historical day."},
+    {q:"The API returns HTTP 429. What should the extractor do?", o:["Fail immediately","Retry with exponential backoff","Skip the page","Advance the watermark"], a:1, e:"429 means rate-limited; waiting and retrying is correct."},
+    {q:"A batch has records with negative quantities. The best handling is:", o:["Drop them silently","Fail the entire load every time","Quarantine them with the error reason and alert if the rate is high","Convert them to positive numbers"], a:2, e:"Quarantine preserves evidence without blocking good data."}
+  ],
+  project:{
+    title:"ShopLink Ingestion Pipeline",
+    brief:"Ingest orders from the mock ShopLink API and customers and products from the app database. Land raw data in bronze, clean it into a silver schema, and orchestrate everything daily in Airflow.",
+    deliverables:[
+      "Incremental API extractor with pagination, backoff and a watermark",
+      "Idempotent silver loaders for orders, order lines, customers and products",
+      "An Airflow DAG with retries and a failure alert",
+      "Demo: a 7-day backfill with no duplicate rows",
+      "Demo: a rerun producing identical row counts and sums",
+      "Demo: a quarantined bad record with its error message",
+      "Credentials read from environment variables, never from code"
+    ]
+  }
+},
+{
+  id:"m3", title:"Analytics Engineering", layer:"Silver layer", color:"--silver",
+  summary:"Turn clean data into tested, documented business models and one definition of every metric, then tell the story in Power BI.",
+  sections:[
+    {
+      id:"s1", title:"dbt fundamentals", mins:180,
+      intro:"dbt lets you write transformations as SELECT statements while it handles table creation, build order and documentation. ref() links models together so dbt can draw the lineage graph, and materializations decide how each model is stored.",
+      points:[
+        "Staging models are one-to-one with sources: rename and cast only.",
+        "Intermediate models hold joins and business logic; marts hold facts and dimensions for BI.",
+        "Views are cheap and fresh, tables are fast, incremental models process only new rows."
+      ],
+      video:{id:"toSAAgLUHuk", title:"dbt Crash Course for Beginners (dbt Core)", channel:"Learn Data Analysis", note:"Follow along from project setup to tests and docs."},
+      codeCap:"models/staging/stg_app__orders.sql",
+      code:`with source as (
+    select * from {{ source('app', 'orders') }}
+)
+select
+    order_id,
+    customer_id,
+    warehouse_id,
+    order_date::date      as order_date,
+    lower(status)         as order_status,
+    status = 'Cancelled'  as is_cancelled,
+    updated_at
+from source`,
+      activity:{title:"Lineage Detective (20 min)", body:"Run dbt docs generate and serve on the starter project. Each pair answers a question such as 'if the products source breaks, which dashboards are affected?' using only the lineage graph."},
+      lab:"Create staging models for all five ShopLink sources with freshness checks."
+    },
+    {
+      id:"s2", title:"Incremental models and snapshots", mins:180,
+      intro:"Incremental models process only rows that changed, with a lookback window to catch late-arriving updates. Snapshots let dbt handle SCD Type 2 for you, recording each version of a row with validity timestamps.",
+      points:[
+        "is_incremental() lets one model do a full build the first time and small updates afterwards.",
+        "A unique_key turns inserts into merges, so reprocessed rows update rather than duplicate.",
+        "Join facts to SCD2 dimensions on the date range, so each sale gets the version valid at the time."
+      ],
+      video:{id:"B8uwFmVt4sU", title:"DBT: The Ultimate Guide, with CI/CD", channel:"Ansh Lamba", note:"Use the chapters on incremental models and snapshots."},
+      codeCap:"models/marts/fct_order_lines.sql (excerpt)",
+      code:`{{ config(materialized='incremental', unique_key='order_line_id') }}
+
+select l.order_line_id, l.order_id, c.customer_sk, l.quantity,
+       {{ net_amount('l.quantity', 'l.unit_price', 'l.discount_pct') }} as net_amount,
+       l.updated_at
+from {{ ref('int_order_lines_enriched') }} l
+left join {{ ref('dim_customer') }} c
+       on c.customer_id = l.customer_id
+      and l.order_date >= c.valid_from
+      and l.order_date <  coalesce(c.valid_to, '9999-12-31')
+{% if is_incremental() %}
+where l.updated_at > (select max(updated_at) - interval '3 days' from {{ this }})
+{% endif %}`,
+      activity:{title:"Snapshot Time Machine (25 min)", body:"Run dbt snapshot, change Aba Phone Hub's city to Lagos in the source, and snapshot again. Query both versions, then prove orders placed before the move still report Aba."},
+      lab:"Build dim_customer from a snapshot and an incremental fct_order_lines."
+    },
+    {
+      id:"s3", title:"Testing, contracts and docs", mins:150,
+      intro:"Untested models are rumours. dbt offers generic tests (unique, not_null, accepted_values, relationships), singular tests written as SQL that returns failing rows, unit tests with fixed inputs, and contracts that enforce column names and types.",
+      points:[
+        "Test every primary key for unique and not_null as a minimum.",
+        "Relationships tests catch orphaned foreign keys before BI does.",
+        "Descriptions in YAML become the documentation site; write them for a business reader."
+      ],
+      codeCap:"models/marts/_marts.yml (excerpt)",
+      code:`models:
+  - name: fct_order_lines
+    description: "One row per order line. Net amounts in NGN after discount."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: order_line_id
+        data_type: int
+        tests: [unique, not_null]
+      - name: customer_sk
+        data_type: text
+        tests:
+          - relationships: {to: ref('dim_customer'), field: customer_sk}
+      - name: quantity
+        data_type: int
+        tests:
+          - dbt_utils.accepted_range: {min_value: 1}`,
+      activity:{title:"Break My Model (30 min)", body:"Pairs swap projects and get ten minutes to insert bad data into each other's source: a duplicate key, an invalid status, a NULL customer. The owner runs dbt build. Uncaught issues become new tests."},
+      lab:"Reach 25 passing tests including one singular test and one unit test."
+    },
+    {
+      id:"s4", title:"Metrics and the semantic layer", mins:150,
+      intro:"Metric drift happens when finance, sales and operations each calculate 'revenue' differently and bring three numbers to one meeting. The fix is to define each metric once, next to the model, with its filters and owner written down.",
+      points:[
+        "Every metric needs a definition, its exclusions and an owner.",
+        "Name alternatives explicitly (ordered revenue, invoiced revenue) rather than letting them compete under one name.",
+        "Put metric definitions in version control so changes are reviewed."
+      ],
+      video:{id:"ai4vZiIcEt4", title:"Learn DBT in 8 Minutes", channel:"Mr. K Talks Tech", note:"Short explainer built around three teams disagreeing on monthly revenue."},
+      codeCap:"A metric defined once in the semantic layer",
+      code:`metrics:
+  - name: net_revenue
+    label: Net revenue (NGN)
+    type: simple
+    type_params: {measure: net_amount}
+    filter: "{{ Dimension('order_line__is_cancelled') }} = false"`,
+      activity:{title:"Revenue Argument (30 min)", body:"Three role cards (CFO, Head of Sales, Warehouse Manager) each define revenue differently. Groups run all three queries, find three numbers for the same month, and negotiate one documented definition plus clearly named alternatives."},
+      lab:"Define net revenue, gross margin %, active customers and average order value."
+    },
+    {
+      id:"s5", title:"Power BI and storytelling", mins:180,
+      intro:"Connect Power BI to the mart schema, never to raw tables. Build a star in the model view with one-to-many relationships from dimensions to the fact, mark the date table, and write measures in DAX so every visual agrees.",
+      points:[
+        "CALCULATE changes filter context; it is the heart of almost every useful measure.",
+        "Time intelligence (TOTALYTD, SAMEPERIODLASTYEAR) needs a marked date table.",
+        "Row-level security limits each warehouse manager to their own rows."
+      ],
+      video:{id:"4rC9Ow76n0U", title:"Power BI DAX Tutorial: Beginner to Advanced", channel:"Full course", note:"Prioritise measures, CALCULATE and time intelligence."},
+      codeCap:"Core DAX measures",
+      code:`Net Revenue =
+CALCULATE ( SUM ( fct_order_lines[net_amount] ),
+            fct_order_lines[is_cancelled] = FALSE () )
+
+Revenue LY = CALCULATE ( [Net Revenue], SAMEPERIODLASTYEAR ( dim_date[full_date] ) )
+
+YoY % = DIVIDE ( [Net Revenue] - [Revenue LY], [Revenue LY] )`,
+      activity:{title:"Five-Second Test (20 min)", body:"Show your dashboard to a partner for five seconds, then hide it. They write down the main message they remember. If it doesn't match your intent, redesign before the review block."},
+      lab:"Build an executive page: four KPI cards with YoY, a monthly trend, revenue by state and a top-10 customer table."
+    }
+  ],
+  test:[
+    {q:"What should a dbt staging model contain?", o:["Joins across all sources","Renames and type casts, one-to-one with a source","Final business metrics","Dashboard filters"], a:1, e:"Staging keeps a clean, one-to-one layer over each source."},
+    {q:"Why does an incremental model use a lookback window such as 3 days?", o:["To speed up full refreshes","To catch late-arriving updates to recent rows","Because dbt requires it","To reduce test coverage"], a:1, e:"Rows can change after they first land; the lookback reprocesses them."},
+    {q:"Which dbt test detects order lines pointing to a customer that doesn't exist?", o:["unique","not_null","relationships","accepted_values"], a:2, e:"relationships checks that each foreign key exists in the parent model."},
+    {q:"Three departments report different revenue for the same month. The analytics engineering fix is:", o:["Pick the largest number","Define each metric once with filters and an owner, and name alternatives explicitly","Ban dashboards","Let each team keep its own"], a:1, e:"A single governed definition removes metric drift."},
+    {q:"In DAX, what does CALCULATE primarily do?", o:["Creates a new table","Evaluates an expression in a modified filter context","Formats numbers","Sorts a column"], a:1, e:"CALCULATE applies or removes filters around an expression."},
+    {q:"Joining a fact to an SCD Type 2 dimension correctly requires:", o:["Joining on the business key only","Joining on the business key and the date falling within the row's validity range","Using a CROSS JOIN","Only current rows"], a:1, e:"Date-range joins attach the version valid at the time of the event."}
+  ],
+  project:{
+    title:"ShopLink Analytics Layer",
+    brief:"Deliver a dbt project covering all ShopLink tables with staging, intermediate and mart layers, and a Power BI report built on the marts that answers the Module 1 business questions.",
+    deliverables:[
+      "Staging, intermediate and mart layers for every ShopLink source",
+      "A snapshot-based customer dimension and an incremental order-lines fact",
+      "At least 25 passing tests, including one singular and one unit test",
+      "Documented metrics: net revenue, gross margin %, active customers, AOV",
+      "Published dbt docs with model descriptions",
+      "A Power BI report answering the ten business questions",
+      "Row-level security for warehouse managers"
+    ]
+  }
+},
+{
+  id:"m4", title:"Lakehouse, Scale and Production", layer:"Gold layer", color:"--gold",
+  summary:"Run the platform on an open lakehouse, process data at scale, stream events, ship through CI/CD, govern it properly, and defend the design. Every tool here is free and open source.",
+  sections:[
+    {
+      id:"s1", title:"The lakehouse on object storage", mins:150,
+      intro:"A data lake stores cheap files in object storage. Here that is MinIO, which speaks the same S3 API as Amazon S3 and Azure Data Lake Storage, so the jobs you write run against a cloud bucket by changing one endpoint. A lakehouse adds a table format, Delta Lake or Apache Iceberg, giving ACID transactions, schema enforcement and time travel on those files. Storage and compute stay separate, so compute costs only while it runs.",
+      points:[
+        "Each medallion layer becomes a set of Delta tables in the bucket.",
+        "MERGE upserts new data and ignores stale updates in one atomic operation.",
+        "Time travel lets you inspect or restore a table as it was before a bad load.",
+        "Moving to S3 or ADLS later changes the endpoint and credentials, not the code."
+      ],
+      video:{id:"2KMTIU9Gksk", title:"An Introduction to Delta Lakes and Delta Lake-Houses", channel:"Paul Andrew", note:"Lakehouse and Delta concepts. The table format is the same one you run locally."},
+      codeCap:"Point Spark at MinIO, then upsert a silver Delta table",
+      code:`from pyspark.sql import SparkSession
+from delta.tables import DeltaTable
+
+spark = (SparkSession.builder
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+    .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")   # S3 or ADLS in production
+    .config("spark.hadoop.fs.s3a.path.style.access", "true")
+    .getOrCreate())
+
+silver = "s3a://silver/orders"
+raw    = spark.read.json("s3a://bronze/orders/run=*/")
+clean  = raw.dropDuplicates(["order_id", "updated_at"])
+
+(DeltaTable.forPath(spark, silver).alias("t")
+    .merge(clean.alias("s"), "t.order_id = s.order_id")
+    .whenMatchedUpdateAll(condition="s.updated_at > t.updated_at")
+    .whenNotMatchedInsertAll()
+    .execute())
+
+# time travel: read the table as it was three versions ago
+spark.read.format("delta").option("versionAsOf", 3).load(silver).count()`,
+      activity:{title:"Architecture Pitch (30 min)", body:"Groups draw a budget card and a requirement card, choose PostgreSQL-only, a warehouse or a lakehouse, sketch it and pitch in three minutes. The class votes on the most cost-effective design that still meets the requirement."},
+      lab:"Bring the stack up with docker compose, land your silver output as Delta tables in MinIO, open the _delta_log to see the transaction log, then corrupt a load on purpose and restore the table from an earlier version."
+    },
+    {
+      id:"s2", title:"Distributed processing with Spark", mins:180,
+      intro:"Spark splits data into partitions processed in parallel. Narrow operations like filter stay local; wide operations like groupBy and join trigger a shuffle across the network, which is usually the main cost. Your Spark runs as a standalone master with two worker containers, so the executors, the shuffle and the stage timings in the Spark UI are real rather than simulated. For data that fits on one machine, DuckDB or Polars is often faster and cheaper.",
+      points:[
+        "Broadcast small lookup tables to avoid shuffling the large side of a join.",
+        "Aim for files of roughly 128 MB to 1 GB; thousands of tiny files slow everything down.",
+        "Read the physical plan with explain() to confirm what Spark actually did.",
+        "Watch the stage boundaries and shuffle read/write bytes in the Spark UI on port 4040."
+      ],
+      video:{id:"bfqiGAn6Ws0", title:"Big Data with PySpark Crash Course", channel:"Full crash course", note:"Focus on DataFrames, joins and aggregations."},
+      codeCap:"Broadcast join and file sizing",
+      code:`from pyspark.sql import functions as F
+
+lines    = spark.read.format("delta").load("s3a://silver/order_lines")  # 500M rows
+products = spark.read.format("delta").load("s3a://silver/products")     # 4k rows
+
+fast    = lines.join(F.broadcast(products), "product_id")
+revenue = (fast.groupBy("category")
+               .agg(F.sum(F.col("quantity") * F.col("unit_price")).alias("revenue")))
+
+revenue.explain(mode="formatted")   # expect BroadcastHashJoin, not SortMergeJoin
+revenue.repartition(8).write.format("delta").mode("overwrite").save("s3a://gold/revenue")`,
+      activity:{title:"Shuffle Relay (20 min)", body:"Learners act as executors holding order cards from mixed states. Counting their own cards is a narrow operation; totalling by state means walking cards to other 'executors', which is a shuffle. Repeat with a photocopied lookup sheet: a broadcast join."},
+      lab:"Process the multi-gigabyte NYC Taxi dataset in PySpark and cut the runtime by fixing the join and the file sizes. Capture the Spark UI before and after, and explain what changed in the plan."
+    },
+    {
+      id:"s3", title:"Streaming and real time", mins:150,
+      intro:"Batch processes bounded data on a schedule; streaming processes unbounded events as they arrive. Kafka, running locally in KRaft mode and exposing the same API that Azure Event Hubs, Confluent and Redpanda speak, stores events in ordered, replayable partitions. Watermarks decide how late an event can arrive and still count.",
+      points:[
+        "Event time is when something happened; processing time is when you saw it.",
+        "Checkpoints let a restarted stream resume exactly where it stopped.",
+        "Replayable partitions mean a broken consumer can be fixed and re-run from an offset.",
+        "Ask whether the business needs seconds; 15-minute micro-batches meet most reporting needs."
+      ],
+      video:{id:"uvb00oaa3k8", title:"Kafka in 100 Seconds", channel:"Fireship", note:"A fast primer before the streaming lab."},
+      codeCap:"Read Kafka, aggregate five-minute windows with a 10-minute watermark",
+      code:`events = (spark.readStream.format("kafka")
+    .option("kafka.bootstrap.servers", "kafka:9092")
+    .option("subscribe", "shoplink.orders")
+    .option("startingOffsets", "earliest")
+    .load()
+    .select(F.from_json(F.col("value").cast("string"), order_schema).alias("o"))
+    .select("o.*"))
+
+per_5_min = (events
+    .withWatermark("event_time", "10 minutes")
+    .groupBy(F.window("event_time", "5 minutes"))
+    .agg(F.sum("amount").alias("revenue"), F.count("*").alias("orders")))
+
+(per_5_min.writeStream.format("delta")
+    .outputMode("append")
+    .option("checkpointLocation", "s3a://gold/_checkpoints/orders_5min")
+    .trigger(processingTime="1 minute")
+    .start("s3a://gold/revenue_5min"))`,
+      activity:{title:"Late Delivery (20 min)", body:"The instructor reads order events with event times, some out of order and one 20 minutes late. Learners fill a five-minute window table on paper using a 10-minute watermark and decide which events count."},
+      lab:"Produce simulated ShopLink orders into a Kafka topic and stream them into a gold Delta table of five-minute revenue. Kill the stream mid-run and confirm the checkpoint resumes it without double-counting."
+    },
+    {
+      id:"s4", title:"CI/CD and infrastructure as code", mins:150,
+      intro:"Every change goes through a pull request, automated tests and a review before reaching production. Separate dev, test and prod environments keep experiments away from executives. Slim CI builds only changed dbt models and their dependents. GitHub Actions is free and unlimited on public repositories, and OpenTofu, the open-source Terraform fork, recreates the whole platform from the repository through its Docker and MinIO providers.",
+      points:[
+        "CI must be green before merge: dbt build on changed models plus SQL linting.",
+        "Secrets live in the CI secret store or a secrets manager, never in the repo.",
+        "Infrastructure changes are reviewed like code because they are code.",
+        "The same OpenTofu run targets a cloud account later by swapping the provider block."
+      ],
+      video:{id:"R8_veQiYBjI", title:"GitHub Actions Tutorial: Basic Concepts and CI/CD Pipeline", channel:"TechWorld with Nana", note:"Covers workflows, events, jobs and runners."},
+      codeCap:"The CI workflow, and the OpenTofu that creates the layers",
+      code:`# .github/workflows/dbt_ci.yml
+name: dbt CI
+on:
+  pull_request:
+    paths: ["shoplink_dbt/**"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install dbt-postgres==1.8.*
+      - name: Build changed models and their children
+        working-directory: shoplink_dbt
+        run: dbt build --select state:modified+ --defer --state ../prod-state --target ci
+
+# infra/main.tf     run with:  tofu init && tofu apply
+provider "minio" {
+  minio_server   = "localhost:9000"
+  minio_user     = var.minio_user
+  minio_password = var.minio_password
+}
+
+resource "minio_s3_bucket" "layer" {
+  for_each = toset(["bronze", "silver", "gold"])
+  bucket   = each.key
+}`,
+      activity:{title:"PR Review Party (30 min)", body:"Each learner opens a pull request with one intentional flaw: a missing test, a hard-coded password or a changed column type. Reviewers rotate and must find the flaw and leave a constructive comment."},
+      lab:"Add a CI workflow that runs slim dbt builds and SQL linting on every pull request, then destroy and recreate the three bucket layers from scratch with tofu apply."
+    },
+    {
+      id:"s5", title:"Governance, security and operations", mins:180,
+      intro:"Governance answers who can see what, where the data came from, and whether it can be trusted. Unity Catalog OSS registers your Delta tables with grants and lineage, and OpenLineage emits events from Airflow and Spark into Marquez so you can see which job wrote which table. Use least-privilege roles, mask personal data and write runbooks. Nigeria's Data Protection Act 2023 requires a lawful basis and appropriate safeguards for personal data.",
+      points:[
+        "Analysts read marts only; raw schemas containing PII stay restricted.",
+        "Mask phone numbers and hash emails in any view shared widely.",
+        "Lineage answers 'what breaks if I change this column?' before you change it.",
+        "A runbook lists alerts, likely causes, first actions, backfill steps and rollback."
+      ],
+      codeCap:"Role-based access and PII masking in PostgreSQL",
+      code:`CREATE ROLE analyst NOLOGIN;
+GRANT USAGE ON SCHEMA mart TO analyst;
+GRANT SELECT ON ALL TABLES IN SCHEMA mart TO analyst;
+REVOKE ALL ON SCHEMA app, silver FROM analyst;
+
+CREATE VIEW mart.dim_customer_masked AS
+SELECT customer_sk, customer_id, customer_name, city, state,
+       regexp_replace(phone, '\\d(?=\\d{4})', '*', 'g') AS phone_masked,
+       md5(lower(email)) AS email_hash
+FROM mart.dim_customer;`,
+      activity:{title:"Incident Drill (40 min)", body:"'The CEO's dashboard shows revenue down 60% overnight.' Teams have 25 minutes to find the cause (one warehouse started sending kobo instead of naira), post status updates every five minutes, fix the data and write a five-line postmortem."},
+      lab:"Register the gold tables in Unity Catalog, confirm the end-to-end lineage graph in Marquez, then write a runbook and an access policy for your platform."
+    }
+  ],
+  test:[
+    {q:"What does a table format such as Delta Lake add to plain Parquet files in a lake?", o:["Faster network speed","ACID transactions, schema enforcement and time travel","Automatic dashboards","Compression only"], a:1, e:"The transaction log makes lake files behave like reliable tables."},
+    {q:"A 500-million-row table joins a 4,000-row product table in Spark. What should you try first?", o:["Increase executors tenfold","Broadcast the small product table","Convert to CSV","Disable caching"], a:1, e:"Broadcasting avoids shuffling the large side."},
+    {q:"In Structured Streaming, what does a watermark control?", o:["How often the job restarts","How late an event can arrive and still be included","The Kafka retention period","Compression level"], a:1, e:"Events later than the watermark are dropped from windowed aggregates."},
+    {q:"What is 'slim CI' for dbt?", o:["Running dbt without tests","Building only changed models and their downstream dependents","Using a smaller database","Skipping code review"], a:1, e:"state:modified+ keeps CI fast while still testing the impact of a change."},
+    {q:"Where should the Kafka connection secret live?", o:["In the job code","In the CI secret store or a secrets manager","In the README","In a dbt model"], a:1, e:"Secrets never go in code or repositories."},
+    {q:"Your Delta tables sit in MinIO. What has to change to run the same job against Amazon S3 or ADLS?", o:["Rewrite the jobs against a vendor SDK","The s3a endpoint and the credentials","Convert the tables back to CSV","Nothing can be reused"], a:1, e:"MinIO speaks the S3 API, so the storage layer is a configuration change, not a rewrite."},
+    {q:"Revenue drops 60% overnight for one warehouse. Your first move in an incident is:", o:["Delete the dashboard","Post a status update, then compare that warehouse's recent source values with history","Restart every pipeline","Wait for the next run"], a:1, e:"Communicate early, then narrow the cause with data."}
+  ],
+  project:{
+    title:"Capstone: ShopLink Data Platform",
+    brief:"Build a production-style platform that ingests from at least two sources (the app database and the orders API; optionally an ERP export such as D365 F&O sales and inventory tables) and delivers a governed executive dashboard. The whole platform must come up from a single docker compose up on a clean machine. Present it to a panel in 20 minutes plus Q&A.",
+    deliverables:[
+      "Incremental, idempotent ingestion into bronze and silver Delta tables in MinIO",
+      "dbt gold layer with two facts (sales, inventory movements), an SCD2 dimension and 40+ passing tests",
+      "Orchestration with retries, alerting and a demonstrated backfill",
+      "A CI pipeline running slim dbt builds and SQL linting on every PR, with the storage layers created by OpenTofu",
+      "A Power BI report with RLS and a masked-PII customer view",
+      "End-to-end lineage visible in Marquez, plus an architecture diagram, data dictionary and runbook",
+      "A cost model: what this platform would cost on S3 or ADLS with managed Spark at 100x volume",
+      "Prepared answers: schema changes, 100x volume, single points of failure, cost cuts"
+    ]
+  }
+}
+];
+const PASS_MARK = 0.7;
+
+/* ============================================================
+   STATE + PERSISTENCE
+   ============================================================ */
+const LS_KEY = "shoplink-course-progress-v1";
+const blank = () => ({sections:{}, tests:{}, projects:{}, learner:""});
+let state = blank();
+let remoteRef = null;
+let saveTimer = null;
+let dbNs = null, userNs = null, myId = null, myName = "", isTrainer = false;
+let myReview = {};
+
+function readLocal(){ try{ const t = localStorage.getItem(LS_KEY); return t ? JSON.parse(t) : null; }catch(e){ return null; } }
+function writeLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function normalise(s){ const b = blank(); if(!s || typeof s!=="object") return b; return {sections:s.sections||{}, tests:s.tests||{}, projects:s.projects||{}, learner:s.learner||""}; }
+function score(s){ return Object.keys(s.sections).length + Object.keys(s.projects).length*5 + Object.values(s.tests).filter(t=>t&&t.passed).length*3; }
+
+function setSaveLabel(t){ document.getElementById("saveState").textContent = t; }
+
+function rosterBody(){
+  return {uid: myId, progress: JSON.parse(JSON.stringify(state)), lastActive: new Date().toISOString(), summary: summaryOf(state)};
+}
+async function pushRemote(){
+  if(!remoteRef) return;
+  try{ await remoteRef.set(rosterBody()); setSaveLabel("Progress saved to your account"); }
+  catch(e){ remoteRef = null; setSaveLabel("Progress saved in this browser"); }
+}
+function save(){
+  writeLocal();
+  clearTimeout(saveTimer);
+  if(remoteRef) saveTimer = setTimeout(pushRemote, 500);
+}
+
+async function connectStore(){
+  try{
+    if(!window.claude || typeof window.claude.use !== "function") return;
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    dbNs = db; userNs = user;
+    if(user){
+      try{ isTrainer = !!(await user.canEdit()); }catch(e){ isTrainer = false; }
+      try{ myName = (await user.name()) || ""; }catch(e){}
+      document.getElementById("trainerLink").hidden = !(isTrainer && db);
+    }
+    if(!db || !user){ render(); return; }
+    const uid = await user.id();
+    if(!uid){ render(); return; }
+    myId = uid;
+    const ref = db.doc("roster/" + uid);
+    const snap = await ref.get();
+    let remote = snap.exists ? normalise((snap.data() || {}).progress) : null;
+    if(!remote){
+      try{ const legacy = await db.doc("data/users/" + uid + "/progress").get(); if(legacy.exists) remote = normalise(legacy.data()); }catch(e){}
+    }
+    if(remote && score(remote) >= score(state)){ state = remote; writeLocal(); }
+    remoteRef = ref;
+    const trainerIdle = !snap.exists && isTrainer && score(state) === 0;  // trainers join the roster only once they start learning
+    if(trainerIdle) setSaveLabel("Progress saved to your account");
+    else if(!snap.exists || score(state) > score(remote || blank())) await pushRemote();
+    else setSaveLabel("Progress saved to your account");
+    db.doc("reviews/" + uid).onSnapshot(s=>{
+      myReview = s.exists ? (s.data() || {}) : {};
+      if(parse().view === "project" && !editing()) render();
+    }, ()=>{});
+    render();
+  }catch(e){ remoteRef = null; render(); }
+}
+
+/* ============================================================
+   GATING LOGIC
+   ============================================================ */
+const key = (m,s) => m + "." + s;
+const secDone = (m,s) => !!state.sections[key(m,s)];
+const testPassed = m => !!(state.tests[m] && state.tests[m].passed);
+const projDone = m => !!(state.projects[m] && state.projects[m].submitted);
+const modIndex = id => COURSE.findIndex(m=>m.id===id);
+
+function moduleUnlocked(mi){ return mi===0 || projDone(COURSE[mi-1].id); }
+function sectionUnlocked(mi, si){ if(!moduleUnlocked(mi)) return false; if(si===0) return true; return secDone(COURSE[mi].id, COURSE[mi].sections[si-1].id); }
+function allSectionsDone(mi){ const m = COURSE[mi]; return m.sections.every(s=>secDone(m.id,s.id)); }
+function testUnlocked(mi){ return moduleUnlocked(mi) && allSectionsDone(mi); }
+function projectUnlocked(mi){ return testUnlocked(mi) && testPassed(COURSE[mi].id); }
+function moduleSteps(mi){ return COURSE[mi].sections.length + 2; }
+function moduleDoneSteps(mi){ const m = COURSE[mi]; return m.sections.filter(s=>secDone(m.id,s.id)).length + (testPassed(m.id)?1:0) + (projDone(m.id)?1:0); }
+function courseDone(){ return COURSE.every(m=>projDone(m.id)); }
+
+function nextStepHref(){
+  for(let mi=0; mi<COURSE.length; mi++){
+    const m = COURSE[mi];
+    if(projDone(m.id)) continue;
+    for(let si=0; si<m.sections.length; si++){ if(!secDone(m.id,m.sections[si].id)) return `#/m/${m.id}/s/${m.sections[si].id}`; }
+    if(!testPassed(m.id)) return `#/m/${m.id}/test`;
+    return `#/m/${m.id}/project`;
+  }
+  return "#/certificate";
+}
+
+function evalFor(p, fn){ const saved = state; state = normalise(p); try{ return fn(); } finally{ state = saved; } }
+function overallPct(){ const total = COURSE.reduce((a,_,i)=>a+moduleSteps(i),0); const done = COURSE.reduce((a,_,i)=>a+moduleDoneSteps(i),0); return Math.round(done/total*100); }
+function currentStep(){
+  for(let mi=0; mi<COURSE.length; mi++){
+    const m = COURSE[mi];
+    if(projDone(m.id)) continue;
+    for(let si=0; si<m.sections.length; si++){ if(!secDone(m.id,m.sections[si].id)) return {mi, label:`Module ${mi+1}, section ${si+1}: ${m.sections[si].title}`}; }
+    if(!testPassed(m.id)) return {mi, label:`Module ${mi+1} test`};
+    return {mi, label:`Module ${mi+1} project`};
+  }
+  return {mi:COURSE.length, label:"Course complete"};
+}
+function summaryOf(p){ return evalFor(p, ()=>({pct: overallPct(), step: currentStep().label, modulesDone: COURSE.filter(m=>projDone(m.id)).length})); }
+function editing(){ const a = document.activeElement; return !!(a && $app.contains(a) && (a.tagName==="TEXTAREA" || (a.tagName==="INPUT" && a.type!=="radio" && a.type!=="checkbox"))); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $app = document.getElementById("app");
+const hrs = mins => { const h = mins/60; return (Number.isInteger(h)?h:h.toFixed(1)) + " h"; };
+
+function updateOverall(){
+  const pct = overallPct();
+  document.getElementById("overallFill").style.width = pct + "%";
+  document.getElementById("overallText").textContent = pct + "%";
+}
+
+function videoBlock(v){
+  const url = "https://www.youtube.com/watch?v=" + encodeURIComponent(v.id);
+  return `<div class="video">
+    <div class="video-frame" data-vid="${esc(v.id)}">
+      <button class="video-poster" type="button" data-play="${esc(v.id)}" aria-label="Play video: ${esc(v.title)}">
+        <span class="play" aria-hidden="true"></span>
+        <strong>${esc(v.title)}</strong>
+        <span>${esc(v.channel)} on YouTube</span>
+      </button>
+    </div>
+    <div class="video-foot"><span>${esc(v.note||"")}</span><a href="${url}" target="_blank" rel="noopener">Open on YouTube</a></div>
+  </div>`;
+}
+
+function stageStatus(mi){
+  const m = COURSE[mi];
+  if(projDone(m.id)) return "Completed";
+  if(!moduleUnlocked(mi)) return "Unlocks after Module " + mi;
+  const d = moduleDoneSteps(mi);
+  return d===0 ? "Ready to start" : `${d} of ${moduleSteps(mi)} steps done`;
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function viewHome(){
+  const started = Object.keys(state.sections).length > 0;
+  const completedMods = COURSE.filter(m=>projDone(m.id)).length;
+  // pipeline progress: fraction across 4 stages
+  const frac = COURSE.reduce((a,_,i)=>a + moduleDoneSteps(i)/moduleSteps(i), 0) / COURSE.length;
+  const stages = COURSE.map((m,i)=>{
+    const locked = !moduleUnlocked(i), done = projDone(m.id);
+    const cls = `stage${locked?" locked":""}${done?" done":""}`;
+    const inner = `<div class="stage-node" aria-hidden="true">${done?"✓":i+1}</div>
+      <div><div class="layer">${esc(m.layer)}</div><h3>${esc(m.title)}</h3><div class="stage-status">${stageStatus(i)}</div></div>`;
+    return locked
+      ? `<div class="${cls}" style="--stage:var(${m.color})" aria-label="Module ${i+1}, ${esc(m.title)}, locked">${inner}</div>`
+      : `<a class="${cls}" style="--stage:var(${m.color})" href="${firstOpenHref(i)}">${inner}</a>`;
+  }).join("");
+
+  const moduleItems = COURSE.map((m,i)=>`
+    <article class="module-item" style="--stage:var(${m.color})">
+      <div class="row"><h3>Module ${i+1}: ${esc(m.title)}</h3><span class="tag">${esc(m.layer)} · Week ${i+1}</span></div>
+      <p class="muted" style="margin:6px 0 0">${esc(m.summary)}</p>
+      <ol>${m.sections.map(s=>`<li>${esc(s.title)}</li>`).join("")}<li>Module test</li><li>Project: ${esc(m.project.title)}</li></ol>
+    </article>`).join("");
+
+  const cta = courseDone()
+    ? `<a class="btn good" href="#/certificate">View your certificate</a>`
+    : `<a class="btn" href="${nextStepHref()}">${started ? "Continue where you left off" : "Start Module 1"}</a>`;
+
+  return `
+  <section class="wrap hero">
+    <h1>Data &amp; Analytics Engineering in four weeks</h1>
+    <p class="lede">Build a complete data platform for one company, ShopLink Distribution, from your first SQL query to a governed, tested, production pipeline. Each module moves your data one layer further, and you unlock the next only by finishing the last.</p>
+    <div class="hero-actions">${cta}<span class="muted">${completedMods} of 4 modules complete</span></div>
+    <div class="pipeline" style="--flow-h:${(frac*100).toFixed(1)}%">
+      <div class="pipe-line"><div class="pipe-flow" style="width:${(frac*100).toFixed(1)}%"></div>${frac>0 && frac<1 ? `<span class="packet" style="left:${(frac*100).toFixed(1)}%" aria-hidden="true"></span>` : ""}</div>
+      <div class="pipe-row">${stages}</div>
+    </div>
+  </section>
+
+  <section class="wrap section-block">
+    <div class="two-col">
+      <div>
+        <h2>How the course works</h2>
+        <p>Work through each module in order. Every section has lesson notes, a worked code sample, a class activity and a lab, with a video where one helps. Finish a section to open the next.</p>
+        <p>After the last section, a short test confirms you are ready; you need ${Math.round(PASS_MARK*100)}% to pass and can retake it. Passing opens the module's hands-on project, and submitting the project unlocks the next module.</p>
+        <div class="facts">
+          <div class="fact"><strong>4 modules</strong><span class="muted">One per week</span></div>
+          <div class="fact"><strong>20 sections</strong><span class="muted">About 45–50 h a week</span></div>
+          <div class="fact"><strong>4 projects</strong><span class="muted">Ending in a capstone</span></div>
+        </div>
+      </div>
+      <div>
+        <h2>What you will be able to do</h2>
+        <ul class="points">
+          <li>Write analytical SQL with joins, CTEs and window functions, and design star schemas with history.</li>
+          <li>Build incremental, idempotent pipelines in Python and orchestrate them with Airflow.</li>
+          <li>Model, test and document data with dbt, and define metrics the whole business agrees on.</li>
+          <li>Run the platform on an open lakehouse with Spark, streaming, CI/CD and proper governance.</li>
+        </ul>
+        <p class="muted">Tools: PostgreSQL, Python, DuckDB, Airflow, dbt, Power BI Desktop, MinIO, Delta Lake, Spark, Kafka, Unity Catalog, GitHub Actions, OpenTofu.</p>
+        <p class="muted">Every tool is free and open source, and the whole stack runs locally under Docker. No cloud subscription, trial or credit card is needed at any point.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section-block">
+    <h2>Modules</h2>
+    <div class="module-list">${moduleItems}</div>
+  </section>`;
+}
+
+function firstOpenHref(mi){
+  const m = COURSE[mi];
+  for(const s of m.sections){ if(!secDone(m.id,s.id)) return `#/m/${m.id}/s/${s.id}`; }
+  if(!testPassed(m.id)) return `#/m/${m.id}/test`;
+  return `#/m/${m.id}/project`;
+}
+
+function rail(mi, current){
+  const m = COURSE[mi];
+  const pct = Math.round(moduleDoneSteps(mi)/moduleSteps(mi)*100);
+  const items = m.sections.map((s,si)=>{
+    const done = secDone(m.id,s.id), open = sectionUnlocked(mi,si);
+    const cls = done ? "done" : open ? "open" : "";
+    const label = `<span class="kind">Section ${si+1} · ${hrs(s.mins)}${open?"":" · locked"}</span>${esc(s.title)}`;
+    return `<li class="${cls}">${open
+      ? `<a href="#/m/${m.id}/s/${s.id}" ${current===s.id?'aria-current="page"':""}>${label}${done?'<span class="sr"> (completed)</span>':""}</a>`
+      : `<span class="step-locked" aria-disabled="true">${label}<span class="sr"> (locked)</span></span>`}</li>`;
+  }).join("");
+  const tOpen = testUnlocked(mi), pOpen = projectUnlocked(mi);
+  const testLi = `<li class="gate ${testPassed(m.id)?"done":tOpen?"open":""}">${tOpen
+      ? `<a href="#/m/${m.id}/test" ${current==="test"?'aria-current="page"':""}><span class="kind">Checkpoint</span>Module test</a>`
+      : `<span class="step-locked" aria-disabled="true"><span class="kind">Checkpoint · locked</span>Module test</span>`}</li>`;
+  const projLi = `<li class="${projDone(m.id)?"done":pOpen?"open":""}">${pOpen
+      ? `<a href="#/m/${m.id}/project" ${current==="project"?'aria-current="page"':""}><span class="kind">Hands-on project</span>${esc(m.project.title)}</a>`
+      : `<span class="step-locked" aria-disabled="true"><span class="kind">Hands-on project · locked</span>${esc(m.project.title)}</span>`}</li>`;
+  return `<nav class="rail" aria-label="Module ${mi+1} steps">
+    <div class="rail-head"><div class="ring" style="--p:${pct}"><span>${pct}%</span></div>
+      <div><div class="layer">Module ${mi+1} · ${esc(m.layer)}</div><h2>${esc(m.title)}</h2></div></div>
+    <ol class="steps">${items}${testLi}${projLi}</ol>
+    <a class="rail-back" href="#/">Back to course overview</a>
+  </nav>`;
+}
+
+function shell(mi, current, inner){
+  return `<div class="wrap module-layout" style="--stage:var(${COURSE[mi].color})">${rail(mi,current)}<article class="content">${inner}</article></div>`;
+}
+
+function viewSection(mi, si){
+  const m = COURSE[mi], s = m.sections[si];
+  const done = secDone(m.id, s.id);
+  const nextHref = si < m.sections.length-1 ? `#/m/${m.id}/s/${m.sections[si+1].id}` : `#/m/${m.id}/test`;
+  const nextLabel = si < m.sections.length-1 ? "Go to next section" : "Take the module test";
+  const inner = `
+    <div class="meta-line"><span>Module ${mi+1}, section ${si+1} of ${m.sections.length}</span><span>About ${hrs(s.mins)} with lab</span></div>
+    <h1>${esc(s.title)}</h1>
+    <p>${esc(s.intro)}</p>
+    ${s.setup ? `<h2>Before you start</h2>
+    <div class="callout"><h3>${esc(s.setup.title)}</h3>
+      <p>${esc(s.setup.intro)}</p>
+      ${s.setup.groups.map(g=>`<p style="margin:0 0 4px"><strong>${esc(g.on)}</strong></p><ul class="points">${g.steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`).join("")}
+      ${s.setup.note ? `<p class="muted" style="margin:0">${esc(s.setup.note)}</p>` : ""}
+    </div>` : ""}
+    <h2>Key ideas</h2>
+    <ul class="points">${s.points.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>
+    ${s.video ? `<h2>Watch</h2>${videoBlock(s.video)}` : ""}
+    <h2>Worked sample</h2>
+    <p class="code-cap">${esc(s.codeCap)}</p>
+    <pre class="code"><code>${esc(s.code)}</code></pre>
+    <div class="callout activity"><h3>Class activity: ${esc(s.activity.title)}</h3><p style="margin:0">${esc(s.activity.body)}</p></div>
+    <div class="callout"><h3>Lab</h3><p style="margin:0">${esc(s.lab)}</p></div>
+    <div id="endSentinel" aria-hidden="true" style="height:1px"></div>
+    <div class="complete-bar">
+      ${done
+        ? `<span class="done-badge">Section complete</span><a class="btn" href="${nextHref}">${nextLabel}</a>`
+        : `<p id="completeHint">Read to the end of the section, then mark it complete to open the next step.</p>
+           <button class="btn good" id="completeBtn" type="button" disabled data-m="${m.id}" data-s="${s.id}" data-next="${nextHref}">Mark section complete</button>`}
+    </div>`;
+  return shell(mi, s.id, inner);
+}
+
+function viewTest(mi){
+  const m = COURSE[mi];
+  const t = state.tests[m.id];
+  if(!testUnlocked(mi)){
+    return shell(mi, "test", `<h1>Module test</h1><div class="lock-note">Complete all ${m.sections.length} sections in this module to open the test.</div>`);
+  }
+  if(t && t.passed){
+    const review = m.test.map((q,i)=>`<div class="q right"><div style="font-weight:600;margin-bottom:6px">${i+1}. ${esc(q.q)}</div><div>${esc(q.o[q.a])}</div><div class="explain">${esc(q.e)}</div></div>`).join("");
+    return shell(mi, "test", `
+      <div class="meta-line"><span>Module ${mi+1} checkpoint</span></div>
+      <h1>Module test</h1>
+      <div class="result pass">Passed with ${t.score} of ${m.test.length} (${Math.round(t.score/m.test.length*100)}%). The hands-on project is now open.</div>
+      <a class="btn" href="#/m/${m.id}/project">Start the project</a>
+      <h2>Answer review</h2>${review}`);
+  }
+  const last = t && !t.passed ? `<div class="result fail">Last attempt: ${t.score} of ${m.test.length}. You need ${Math.ceil(PASS_MARK*m.test.length)} to pass. Questions you missed are marked; review those sections and try again.</div>` : "";
+  const wrongSet = new Set((t && t.wrong) || []);
+  const qs = m.test.map((q,i)=>`
+    <div class="q ${wrongSet.has(i)?"wrong":""}">
+      <fieldset>
+        <legend>${i+1}. ${esc(q.q)}${wrongSet.has(i)?' <span class="sr">(missed last attempt)</span>':""}</legend>
+        ${q.o.map((o,oi)=>`<label class="opt"><input type="radio" name="q${i}" value="${oi}"><span>${esc(o)}</span></label>`).join("")}
+      </fieldset>
+    </div>`).join("");
+  return shell(mi, "test", `
+    <div class="meta-line"><span>Module ${mi+1} checkpoint</span><span>${m.test.length} questions</span><span>Pass mark ${Math.round(PASS_MARK*100)}%</span></div>
+    <h1>Module test</h1>
+    <p>Confirm you've understood this module's sections. Answer every question, then submit.</p>
+    ${last}
+    <form id="testForm" data-m="${m.id}" novalidate>${qs}
+      <p class="err" id="testErr" role="alert"></p>
+      <button class="btn" type="submit">Submit answers</button>
+    </form>`);
+}
+
+function viewProject(mi){
+  const m = COURSE[mi], p = m.project;
+  if(!projectUnlocked(mi)){
+    const why = !allSectionsDone(mi) ? "Complete every section and pass the module test to open the project." : "Pass the module test to open the project.";
+    return shell(mi, "project", `<h1>${esc(p.title)}</h1><div class="lock-note">${why}</div>`);
+  }
+  const saved = state.projects[m.id] || {};
+  const checks = saved.checks || [];
+  const rv = myReview[m.id];
+  const reopen = !!(saved.submitted && rv && rv.status === "changes" && rv.at > (saved.at || ""));
+  const submitted = !!saved.submitted && !reopen;
+  const fb = rv && saved.submitted ? `<div class="feedback ${rv.status==="approved"?"ok":"warn"}"><h3>${rv.status==="approved" ? "Your trainer approved this project" : "Your trainer requested changes"}</h3>${rv.feedback ? `<p style="margin:0;white-space:pre-wrap">${esc(rv.feedback)}</p>` : ""}${reopen ? `<p class="muted" style="margin:8px 0 0">Update your work and resubmit below. The next module stays open while you do.</p>` : ""}</div>` : "";
+  const isLast = mi === COURSE.length-1;
+  const after = submitted
+    ? `<div class="result pass">Project submitted. ${isLast ? "You've finished the course." : `Module ${mi+2} is now unlocked.`}</div>
+       <a class="btn" href="${isLast ? "#/certificate" : `#/m/${COURSE[mi+1].id}/s/${COURSE[mi+1].sections[0].id}`}">${isLast ? "View your certificate" : `Start Module ${mi+2}`}</a>`
+    : "";
+  return shell(mi, "project", `
+    <div class="meta-line"><span>Module ${mi+1} hands-on project</span><span>${p.deliverables.length} deliverables</span></div>
+    <h1>${esc(p.title)}</h1>
+    <p>${esc(p.brief)}</p>
+    ${fb}${reopen ? "" : after}
+    <form id="projForm" data-m="${m.id}" data-reopen="${reopen?1:0}" novalidate>
+      <h2>Deliverables</h2>
+      <p class="muted">Tick each item once it is done and committed to your repository.</p>
+      <ul class="checklist">${p.deliverables.map((d,i)=>`<li><label><input type="checkbox" name="d${i}" ${checks[i]?"checked":""} ${submitted?"disabled":""}><span>${esc(d)}</span></label></li>`).join("")}</ul>
+      <label class="field"><span>Repository link</span>
+        <input type="url" name="repo" placeholder="https://github.com/you/shoplink-${m.id}" value="${esc(saved.repo||"")}" ${submitted?"disabled":""}>
+        <small>Your instructor reviews the project from this link.</small></label>
+      <label class="field"><span>What was hardest, and how did you solve it?</span>
+        <textarea name="notes" ${submitted?"disabled":""}>${esc(saved.notes||"")}</textarea></label>
+      <p class="err" id="projErr" role="alert"></p>
+      ${submitted ? "" : `<button class="btn good" type="submit">${reopen ? "Resubmit project" : "Submit project"}</button>`}
+    </form>`);
+}
+
+function viewCertificate(){
+  if(!courseDone()){
+    return `<div class="wrap" style="padding:48px 20px"><h1>Certificate</h1><div class="lock-note" style="margin-top:20px">Finish all four module projects to receive your certificate.</div><p style="margin-top:20px"><a class="btn" href="${nextStepHref()}">Continue the course</a></p></div>`;
+  }
+  const name = state.learner || myName;
+  return `<div class="wrap" style="padding:40px 20px;max-width:880px">
+    <div class="cert">
+      <p class="muted" style="margin:10px 0 0">Certificate of completion</p>
+      <h1>Data &amp; Analytics Engineering Bootcamp</h1>
+      <p class="muted">This certifies that</p>
+      <div class="name">${name ? esc(name) : "Your name"}</div>
+      <p>has completed all four modules, passed every module test, and submitted the ShopLink capstone data platform.</p>
+      <p class="muted">SQL and modeling · Pipelines and orchestration · dbt and metrics · Lakehouse, scale and production</p>
+    </div>
+    <form id="nameForm" class="field" style="max-width:420px">
+      <span>Name on certificate</span>
+      <div style="display:flex;gap:10px"><input name="learner" value="${esc(state.learner || myName)}" placeholder="Full name" autocomplete="name"><button class="btn" type="submit">Save name</button></div>
+    </form>
+  </div>`;
+}
+
+/* ============================================================
+   TRAINER DASHBOARD
+   ============================================================ */
+let roster = null, reviews = {}, rosterErr = null, trainerSubs = false, names = {}, filterText = "", sortKey = "progress";
+function startTrainerSubs(){
+  if(trainerSubs || !dbNs) return;
+  trainerSubs = true;
+  dbNs.collection("roster").onSnapshot(s=>{
+    roster = s.docs.filter(d=>d.exists).map(d=>({id:d.id, ...(d.data()||{})}));
+    resolveNames();
+    if(parse().view.startsWith("trainer") && !editing()) render();
+  }, e=>{ rosterErr = e && e.code || "unavailable"; render(); });
+  dbNs.collection("reviews").onSnapshot(s=>{
+    const next = {}; s.docs.forEach(d=>{ if(d.exists) next[d.id] = d.data() || {}; }); reviews = next;
+    if(parse().view.startsWith("trainer") && !editing()) render();
+  }, ()=>{});
+}
+async function resolveNames(){
+  if(!userNs || !roster) return;
+  const ids = roster.map(r=>r.id).filter(id=>!(id in names));
+  if(!ids.length) return;
+  try{
+    const ps = await userNs.profiles(ids);
+    ids.forEach(id=>{ names[id] = (ps[id] && ps[id].name) || ""; });
+    if(parse().view.startsWith("trainer") && !editing()) render();
+  }catch(e){}
+}
+function learnerName(r){ return names[r.id] || (r.progress && r.progress.learner) || ("Learner " + r.id.slice(-4)); }
+function relTime(iso){
+  if(!iso) return "—";
+  const d = (Date.now() - new Date(iso).getTime())/1000;
+  if(d < 90) return "just now";
+  if(d < 3600) return Math.round(d/60) + " min ago";
+  if(d < 86400) return Math.round(d/3600) + " h ago";
+  const days = Math.round(d/86400); return days + (days===1?" day ago":" days ago");
+}
+const fmtDate = iso => iso ? new Date(iso).toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
+
+function moduleCell(r, mi){
+  const m = COURSE[mi], rv = (reviews[r.id]||{})[m.id];
+  return evalFor(r.progress, ()=>{
+    if(projDone(m.id)){
+      const p = state.projects[m.id];
+      if(rv && rv.status==="approved") return `<span class="pill ok">Approved</span>`;
+      if(rv && rv.status==="changes" && rv.at > (p.at||"")) return `<span class="pill warn">Changes requested</span>`;
+      return `<span class="pill wait">Needs review</span>`;
+    }
+    if(!moduleUnlocked(mi)) return `<span class="cell-sub">Locked</span>`;
+    const t = state.tests[m.id];
+    if(projectUnlocked(mi)) return `<span class="pill">Project open</span><span class="cell-sub">Test ${t.score}/${m.test.length}</span>`;
+    if(t) return `<span class="pill ${t.passed?"":"warn"}">Test ${t.score}/${m.test.length}</span><span class="cell-sub">${t.attempts} attempt${t.attempts===1?"":"s"}</span>`;
+    const n = m.sections.filter(s=>secDone(m.id,s.id)).length;
+    return `<span>${n}/${m.sections.length} sections</span>`;
+  });
+}
+function needsReview(r){
+  return COURSE.filter(m=>{
+    const p = r.progress && r.progress.projects && r.progress.projects[m.id];
+    if(!p || !p.submitted) return false;
+    const rv = (reviews[r.id]||{})[m.id];
+    return !rv || (rv.at < (p.at||""));
+  }).length;
+}
+
+function viewTrainer(){
+  if(!isTrainer) return `<div class="wrap" style="padding:48px 20px"><h1>Trainer dashboard</h1><div class="lock-note" style="margin-top:20px">Only people who can edit this course can see the trainer dashboard.</div></div>`;
+  startTrainerSubs();
+  if(rosterErr) return `<div class="wrap" style="padding:48px 20px"><h1>Trainer dashboard</h1><div class="lock-note" style="margin-top:20px">Learner data couldn't load (${esc(rosterErr)}). Reload the page to try again.</div></div>`;
+  if(!roster) return `<div class="wrap" style="padding:48px 20px"><h1>Trainer dashboard</h1><p class="muted">Loading learners…</p></div>`;
+  const list = roster.filter(r=>r.progress);
+  const weekAgo = new Date(Date.now()-7*86400000).toISOString();
+  const active = list.filter(r=>(r.lastActive||"") >= weekAgo).length;
+  const avg = list.length ? Math.round(list.reduce((a,r)=>a+(summaryOf(r.progress).pct),0)/list.length) : 0;
+  const pending = list.reduce((a,r)=>a+needsReview(r),0);
+  const finished = list.filter(r=>summaryOf(r.progress).modulesDone===COURSE.length).length;
+
+  const funnel = COURSE.map((m,mi)=>{
+    const n = list.filter(r=>evalFor(r.progress, ()=>projDone(m.id))).length;
+    const pct = list.length ? Math.round(n/list.length*100) : 0;
+    return `<div class="funnel-row" style="--stage:var(${m.color})"><span>Module ${mi+1}: ${esc(m.title)}</span><div class="funnel-track"><div class="funnel-fill" style="width:${pct}%"></div></div><span>${n} of ${list.length}</span></div>`;
+  }).join("");
+
+  const q = filterText.toLowerCase();
+  let rows = list.filter(r=>!q || learnerName(r).toLowerCase().includes(q));
+  rows.sort((a,b)=>{
+    if(sortKey==="name") return learnerName(a).localeCompare(learnerName(b));
+    if(sortKey==="active") return (b.lastActive||"").localeCompare(a.lastActive||"");
+    if(sortKey==="review") return needsReview(b)-needsReview(a);
+    return summaryOf(b.progress).pct - summaryOf(a.progress).pct;
+  });
+  const sortBtn = (k, label) => `<button type="button" data-sort="${k}" aria-pressed="${sortKey===k}">${label}${sortKey===k?" ▾":""}</button>`;
+  const body = rows.map(r=>{
+    const s = summaryOf(r.progress);
+    return `<tr>
+      <td><a class="who" href="#/trainer/${encodeURIComponent(r.id)}">${esc(learnerName(r))}</a>${needsReview(r)?`<span class="cell-sub">${needsReview(r)} to review</span>`:""}</td>
+      <td>${s.pct}%<div class="mini-bar"><div style="width:${s.pct}%"></div></div></td>
+      <td>${esc(s.step)}</td>
+      ${COURSE.map((_,mi)=>`<td>${moduleCell(r,mi)}</td>`).join("")}
+      <td>${relTime(r.lastActive)}</td>
+    </tr>`;
+  }).join("");
+  const empty = !list.length
+    ? `<div class="lock-note" style="margin-top:14px">No learners yet. Share this page with trainees using “Can interact” access; each appears here after their first visit.</div>`
+    : (!rows.length ? `<p class="muted" style="margin-top:14px">No learners match “${esc(filterText)}”.</p>` : "");
+
+  return `<div class="wrap" style="padding-block:36px 60px">
+    <h1 style="font-size:clamp(28px,3.6vw,40px)">Trainer dashboard</h1>
+    <p class="muted" style="max-width:62ch">Live progress for everyone taking the course. Only people who can edit this page see it; learners see only their own progress and your feedback.</p>
+    <div class="stats">
+      <div class="stat"><strong>${list.length}</strong><span>Learners enrolled</span></div>
+      <div class="stat"><strong>${active}</strong><span>Active in the last 7 days</span></div>
+      <div class="stat"><strong>${avg}%</strong><span>Average progress</span></div>
+      <div class="stat"><strong>${pending}</strong><span>Projects awaiting review</span></div>
+      <div class="stat"><strong>${finished}</strong><span>Completed the course</span></div>
+    </div>
+    <h2 style="font-size:21px;margin-top:28px">Module completion</h2>
+    <div class="funnel">${funnel}</div>
+    <div class="toolbar">
+      <input type="search" id="rosterFilter" placeholder="Find a learner" value="${esc(filterText)}" aria-label="Find a learner">
+      <button class="btn ghost" type="button" id="csvBtn" ${list.length?"":"disabled"}>Download CSV</button>
+    </div>
+    ${list.length ? `<div class="table-wrap"><table class="roster">
+      <thead><tr><th>${sortBtn("name","Learner")}</th><th>${sortBtn("progress","Progress")}</th><th style="min-width:200px">Current step</th>${COURSE.map((m,i)=>`<th>M${i+1} ${esc(m.title.split(",")[0])}</th>`).join("")}<th>${sortBtn("active","Last active")}</th></tr></thead>
+      <tbody>${body}</tbody></table></div>` : ""}
+    ${empty}
+    <p class="muted" id="csvMsg" role="status" style="margin-top:10px"></p>
+  </div>`;
+}
+
+function viewTrainerDetail(uid){
+  if(!isTrainer) return viewTrainer();
+  startTrainerSubs();
+  if(!roster) return `<div class="wrap" style="padding:48px 20px"><p class="muted">Loading learner…</p></div>`;
+  const r = roster.find(x=>x.id===uid);
+  if(!r || !r.progress) return `<div class="wrap" style="padding:48px 20px"><h1>Learner not found</h1><p><a href="#/trainer">Back to the dashboard</a></p></div>`;
+  const s = summaryOf(r.progress);
+  const cards = COURSE.map((m,mi)=>evalFor(r.progress, ()=>{
+    const unlocked = moduleUnlocked(mi);
+    const secs = m.sections.map(sec=>{ const at = state.sections[key(m.id,sec.id)]; return `<li>${esc(sec.title)} <span class="cell-sub" style="display:inline">${at ? "· " + fmtDate(typeof at==="string"?at:"") : "· not done"}</span></li>`; }).join("");
+    const t = state.tests[m.id];
+    const testTxt = t
+      ? `${t.passed?'<span class="pill ok">Passed</span>':'<span class="pill warn">Not passed</span>'} ${t.score}/${m.test.length} on attempt ${t.attempts}${t.wrong && t.wrong.length ? `<span class="cell-sub">Missed on latest attempt: ${t.wrong.map(i=>esc("Q"+(i+1)+" "+m.test[i].q)).join("; ")}</span>` : ""}`
+      : "Not attempted";
+    const p = state.projects[m.id];
+    const rv = (reviews[uid]||{})[m.id];
+    let proj = "Not started";
+    if(p){
+      const done = (p.checks||[]).filter(Boolean).length;
+      const safeRepo = /^https?:\/\//i.test(p.repo||"") ? p.repo : "";
+      proj = `<dl class="kv">
+        <dt>Status</dt><dd>${p.submitted ? `Submitted ${fmtDate(p.at)}` : "In progress, not submitted"}</dd>
+        <dt>Deliverables</dt><dd>${done} of ${m.project.deliverables.length} ticked</dd>
+        <dt>Repository</dt><dd>${safeRepo ? `<a href="${esc(safeRepo)}" target="_blank" rel="noopener noreferrer">${esc(safeRepo)}</a>` : "—"}</dd>
+        <dt>Reflection</dt><dd style="white-space:pre-wrap">${p.notes ? esc(p.notes) : "—"}</dd>
+      </dl>
+      ${p.submitted ? `<form class="review-box" data-review="${m.id}">
+        <strong>Your review</strong>${rv ? ` <span class="cell-sub" style="display:inline">· last saved ${fmtDate(rv.at)}${rv.at < (p.at||"") ? ", learner has resubmitted since" : ""}</span>` : ""}
+        <div class="opts">
+          <label class="r"><input type="radio" name="status" value="approved" ${rv&&rv.status==="approved"?"checked":""}> Approve</label>
+          <label class="r"><input type="radio" name="status" value="changes" ${rv&&rv.status==="changes"?"checked":""}> Request changes</label>
+        </div>
+        <label class="field" style="margin:0 0 10px"><span>Feedback for the learner</span><textarea name="feedback" placeholder="What's strong, and what to fix">${esc(rv&&rv.feedback||"")}</textarea></label>
+        <p class="err" role="alert"></p>
+        <button class="btn" type="submit">Send review</button>
+      </form>` : ""}`;
+    }
+    return `<section class="mod-card" style="--stage:var(${m.color})">
+      <h3>Module ${mi+1}: ${esc(m.title)} ${!unlocked ? '<span class="pill">Locked</span>' : ""}</h3>
+      <dl class="kv"><dt>Sections</dt><dd><ul style="margin:0;padding-left:18px">${secs}</ul></dd><dt>Module test</dt><dd>${testTxt}</dd></dl>
+      <strong>Project: ${esc(m.project.title)}</strong>${proj==="Not started" ? `<p class="muted" style="margin:6px 0 0">Not started</p>` : proj}
+    </section>`;
+  })).join("");
+  return `<div class="wrap" style="padding-block:36px 60px;max-width:900px">
+    <a class="rail-back" style="margin:0 0 14px" href="#/trainer">Back to the dashboard</a>
+    <h1 style="font-size:clamp(26px,3.4vw,38px)">${esc(learnerName(r))}</h1>
+    <p class="muted">${s.pct}% complete · ${esc(s.step)} · last active ${relTime(r.lastActive)}</p>
+    ${cards}
+  </div>`;
+}
+
+function rosterCsv(){
+  const cols = ["Learner","Progress %","Current step","Last active"];
+  COURSE.forEach((m,i)=>cols.push(`M${i+1} sections`,`M${i+1} test`,`M${i+1} project`,`M${i+1} repo`,`M${i+1} review`));
+  const cell = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const lines = [cols.map(cell).join(",")];
+  (roster||[]).filter(r=>r.progress).forEach(r=>{
+    const s = summaryOf(r.progress);
+    const row = [learnerName(r), s.pct, s.step, r.lastActive||""];
+    COURSE.forEach(m=>evalFor(r.progress, ()=>{
+      const t = state.tests[m.id], p = state.projects[m.id], rv = (reviews[r.id]||{})[m.id];
+      row.push(m.sections.filter(x=>secDone(m.id,x.id)).length + "/" + m.sections.length,
+               t ? `${t.score}/${m.test.length}${t.passed?" passed":""}` : "",
+               p ? (p.submitted ? "submitted" : "in progress") : "",
+               p && p.repo || "", rv ? rv.status : "");
+    }));
+    lines.push(row.map(cell).join(","));
+  });
+  return lines.join("\r\n");
+}
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+function parse(){
+  const h = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  if(h[0]==="m"){
+    const mi = modIndex(h[1]);
+    if(mi<0) return {view:"home"};
+    if(h[2]==="s"){ const si = COURSE[mi].sections.findIndex(s=>s.id===h[3]); return si<0 ? {view:"home"} : {view:"section", mi, si}; }
+    if(h[2]==="test") return {view:"test", mi};
+    if(h[2]==="project") return {view:"project", mi};
+    return {view:"section", mi, si:0};
+  }
+  if(h[0]==="certificate") return {view:"cert"};
+  if(h[0]==="trainer") return h[1] ? {view:"trainerDetail", uid:decodeURIComponent(h[1])} : {view:"trainer"};
+  return {view:"home"};
+}
+
+let observer = null;
+function render(){
+  const r = parse();
+  if(observer){ observer.disconnect(); observer = null; }
+  // locked routes redirect to the furthest open step
+  if((r.view==="section" && !sectionUnlocked(r.mi, r.si)) || ((r.view==="test"||r.view==="project") && !moduleUnlocked(r.mi))){
+    location.replace(nextStepHref()); return;
+  }
+  let html;
+  if(r.view==="section") html = viewSection(r.mi, r.si);
+  else if(r.view==="test") html = viewTest(r.mi);
+  else if(r.view==="project") html = viewProject(r.mi);
+  else if(r.view==="cert") html = viewCertificate();
+  else if(r.view==="trainer") html = viewTrainer();
+  else if(r.view==="trainerDetail") html = viewTrainerDetail(r.uid);
+  else html = viewHome();
+  $app.innerHTML = html;
+  updateOverall();
+  wire();
+}
+
+function wire(){
+  // click-to-load videos
+  $app.querySelectorAll("[data-play]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.getAttribute("data-play");
+      const f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(id) + "?autoplay=1&rel=0";
+      f.title = btn.getAttribute("aria-label").replace(/^Play video: /,"");
+      f.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      f.allowFullscreen = true;
+      f.referrerPolicy = "strict-origin-when-cross-origin";
+      btn.replaceWith(f);
+    });
+  });
+
+  // section completion unlocks once the reader reaches the end
+  const cb = document.getElementById("completeBtn");
+  if(cb){
+    const enable = ()=>{ cb.disabled = false; const h = document.getElementById("completeHint"); if(h) h.textContent = "You've reached the end. Mark it complete to open the next step."; };
+    const sentinel = document.getElementById("endSentinel");
+    if("IntersectionObserver" in window && sentinel){
+      observer = new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ enable(); observer.disconnect(); } });
+      observer.observe(sentinel);
+    } else enable();
+    cb.addEventListener("click", ()=>{
+      state.sections[key(cb.dataset.m, cb.dataset.s)] = new Date().toISOString();
+      save();
+      location.hash = cb.dataset.next;
+    });
+  }
+
+  // module test
+  const tf = document.getElementById("testForm");
+  if(tf){
+    tf.addEventListener("submit", e=>{
+      e.preventDefault();
+      const m = COURSE[modIndex(tf.dataset.m)];
+      const answers = m.test.map((_,i)=>{ const c = tf.querySelector(`input[name="q${i}"]:checked`); return c ? Number(c.value) : null; });
+      const missing = answers.findIndex(a=>a===null);
+      if(missing>=0){
+        document.getElementById("testErr").textContent = `Answer question ${missing+1} before submitting.`;
+        tf.querySelector(`input[name="q${missing}"]`).focus();
+        return;
+      }
+      const wrong = answers.map((a,i)=>a===m.test[i].a?null:i).filter(i=>i!==null);
+      const sc = m.test.length - wrong.length;
+      const prev = state.tests[m.id] || {attempts:0};
+      state.tests[m.id] = {score:sc, passed: sc/m.test.length >= PASS_MARK, attempts:(prev.attempts||0)+1, wrong, at:new Date().toISOString()};
+      save(); render(); window.scrollTo({top:0});
+    });
+  }
+
+  // project submission
+  const pf = document.getElementById("projForm");
+  if(pf){
+    const m = COURSE[modIndex(pf.dataset.m)];
+    const collect = ()=>{
+      const checks = m.project.deliverables.map((_,i)=>pf.querySelector(`input[name="d${i}"]`).checked);
+      return {checks, repo: pf.repo.value.trim(), notes: pf.notes.value.trim()};
+    };
+    const reopen = pf.dataset.reopen === "1";
+    pf.addEventListener("change", ()=>{
+      const prev = state.projects[m.id] || {};
+      if(prev.submitted && !reopen) return;
+      state.projects[m.id] = reopen ? {...prev, ...collect()} : {...collect(), submitted:false};
+      save();
+    });
+    pf.addEventListener("submit", e=>{
+      e.preventDefault();
+      const d = collect(), err = document.getElementById("projErr");
+      const remaining = d.checks.filter(c=>!c).length;
+      if(remaining){ err.textContent = `Tick all deliverables before submitting. ${remaining} still open.`; return; }
+      if(!/^https?:\/\/\S+\.\S+/.test(d.repo)){ err.textContent = "Add a full repository link starting with https://."; pf.repo.focus(); return; }
+      if(d.notes.length < 20){ err.textContent = "Add a few sentences about what was hardest (at least 20 characters)."; pf.notes.focus(); return; }
+      state.projects[m.id] = {...d, submitted:true, at:new Date().toISOString()};
+      save(); render(); window.scrollTo({top:0});
+    });
+  }
+
+  // trainer dashboard controls
+  const rf = document.getElementById("rosterFilter");
+  if(rf){ rf.addEventListener("input", ()=>{ filterText = rf.value; const pos = rf.selectionStart; render(); const n = document.getElementById("rosterFilter"); if(n){ n.focus(); n.setSelectionRange(pos,pos); } }); }
+  $app.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click", ()=>{ sortKey = b.dataset.sort; render(); }));
+  const csv = document.getElementById("csvBtn");
+  if(csv){ csv.addEventListener("click", async ()=>{
+    const msg = document.getElementById("csvMsg");
+    try{
+      const dl = await window.claude.use("downloads");
+      if(!dl){ msg.textContent = "Downloads aren't available in this view."; return; }
+      const res = await dl.save({filename:`course-progress-${new Date().toISOString().slice(0,10)}.csv`, data: rosterCsv()});
+      msg.textContent = res && res.saved === false ? "Download cancelled." : "CSV saved.";
+    }catch(e){ msg.textContent = "The download didn't complete. Try again."; }
+  }); }
+  $app.querySelectorAll("form[data-review]").forEach(f=>{
+    f.addEventListener("submit", async e=>{
+      e.preventDefault();
+      const err = f.querySelector(".err");
+      const status = (f.querySelector('input[name="status"]:checked')||{}).value;
+      const feedback = f.feedback.value.trim().slice(0,4000);
+      if(!status){ err.textContent = "Choose Approve or Request changes."; return; }
+      if(status==="changes" && feedback.length < 10){ err.textContent = "Tell the learner what to change (at least 10 characters)."; f.feedback.focus(); return; }
+      const uid = parse().uid;
+      const next = JSON.parse(JSON.stringify(reviews[uid] || {}));
+      next[f.dataset.review] = {status, feedback, at:new Date().toISOString(), by:myId};
+      const btn = f.querySelector("button"); btn.disabled = true; btn.textContent = "Sending…";
+      try{ await dbNs.doc("reviews/" + uid).set(next); reviews[uid] = next; f.feedback.blur(); render(); }
+      catch(ex){ btn.disabled = false; btn.textContent = "Send review"; err.textContent = "The review didn't save. Check your connection and try again."; }
+    });
+  });
+
+  // certificate name
+  const nf = document.getElementById("nameForm");
+  if(nf){ nf.addEventListener("submit", e=>{ e.preventDefault(); state.learner = nf.learner.value.trim().slice(0,80); save(); render(); }); }
+}
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!confirm("Reset all progress? Completed sections, test results and project submissions will be cleared.")) return;
+  state = blank(); writeLocal(); pushRemote(); location.hash = "#/"; render();
+});
+
+window.addEventListener("hashchange", ()=>{ render(); window.scrollTo({top:0}); $app.focus({preventScroll:true}); });
+
+state = normalise(readLocal());
+render();
+connectStore();
+</script>
+</body>
+</html>

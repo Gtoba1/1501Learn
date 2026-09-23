@@ -1,0 +1,41 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
+# Week 4 stack: learner notebooks and container data
+week4-stack/work/
+week4-stack/data/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Data files: the course generates these, they are not source
+*.parquet
+*.duckdb
+data/bronze/
+data/silver/
+data/gold/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
