@@ -21,26 +21,6 @@ A single-file web app (`index.html`) that presents the 4-week Data & Analytics E
 - **Zero-cost stack.** Every tool the course uses is free and open source, with no trial clock, seat count or credit card.
 - **Trainer dashboard** (`#/trainer`, editors only): cohort stats, module completion, a searchable, sortable learner table, per-learner drill-down, project reviews (Approve / Request changes with feedback) and CSV export.
 
-## Running it in GitHub Codespaces
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/sodhuios/shoplink-course-app)
-
-A `.devcontainer/` is included, so a learner with no local setup at all can click that badge and get Python 3.11, Docker-in-Docker and every course port forwarded and labelled. Nothing to install, on any machine including a Chromebook.
-
-On attach it serves the course app on port 8000 and opens the preview. Two things to know about that preview: it runs in **single-learner mode** (progress saves to the browser only, and the trainer dashboard is absent) because the claude.ai runtime isn't there. Use it to review or edit content — run the actual cohort from the published artifact.
-
-**Machine size matters, and it costs quota.** The free tier gives **120 core-hours and 15 GB per month** on a personal account:
-
-| Machine | Free hours/month | Good for |
-| --- | --- | --- |
-| 2-core, 8 GB (default) | 60 | Weeks 1–3, app preview, editing |
-| 4-core, 16 GB | 30 | Week 4 core profile (MinIO, Spark, Kafka) |
-| 8-core, 32 GB | 15 | Week 4 with the governance profile |
-
-The devcontainer deliberately doesn't pin `hostRequirements`, so learners get the cheap default and pick a larger machine at creation time for Week 4. Codespaces stop after 30 minutes idle, so remind the cohort to stop theirs — an idle Codespace left running overnight eats a week of quota. Storage counts too: stop is free, but the 15 GB applies to stored Codespaces, so delete rather than keep them between weeks.
-
-For a whole cohort, put the repo in an organisation and set an org-level spending limit; org-owned Codespaces bill to the org, not to each learner's personal free tier.
-
 ## Prerequisites for learners
 
 Docker Desktop, Git and Python 3.11+. Everything else runs inside containers. Module 1 Section 1 carries per-OS install steps and verification commands in a "Before you start" block — send learners there the week before the course, because a room installing Docker simultaneously costs you the first morning.
