@@ -41,7 +41,8 @@ The full stack wants about 16 GB RAM. If a learner is short:
 
 - Run without the governance profile except on section 5 day.
 - Drop `spark-worker` to one replica — the shuffle is still real, just narrower.
-- Or run the whole thing in GitHub Codespaces: the free tier gives 120 core-hours and 15 GB per month on a personal account.
+- Close everything else. Spark, Kafka and MinIO together leave little room for a browser with forty tabs.
+- As a last resort, pair two learners on one adequate machine for the Week 4 labs.
 
 ## Known snags
 

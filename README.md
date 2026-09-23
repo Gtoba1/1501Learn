@@ -43,7 +43,7 @@ The point of this choice is that nothing is simulated: learners size real execut
 
 **Why not Databricks or Fabric.** Databricks Free Edition is genuinely free but its terms exclude commercial use — which corporate training is — and it is serverless-only, so the Spark cluster-tuning section cannot be taught on it. The Fabric trial expires after 60 days and then needs paid capacity.
 
-**Hardware.** The full Week 4 stack wants about 16 GB RAM. Learners short of that can run the labs in GitHub Codespaces, whose free tier gives 120 core-hours and 15 GB per month per personal account.
+**Hardware.** Everything runs locally on the learner's own machine. Weeks 1–3 are comfortable on 8 GB; the full Week 4 stack wants about 16 GB. Machines short of that can still do Week 4 by running the governance profile only on the day it is needed and dropping to a single Spark worker — the shuffle stays real, just narrower. `week4-stack/README.md` has the details.
 
 ## Running it
 

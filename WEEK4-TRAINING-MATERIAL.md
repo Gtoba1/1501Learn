@@ -34,7 +34,7 @@ Facilitator checklist, ideally done the Friday before:
 2. Confirm both Spark workers appear at http://localhost:8080. If only one shows, the machine is short on memory.
 3. Confirm `bronze`, `silver` and `gold` exist in the MinIO console at http://localhost:9001.
 4. Download the NYC Taxi parquet files for Day 2 *in advance* — roughly 3–4 GB. Doing this live burns an hour of class time.
-5. Anyone with under 16 GB RAM: set them up in GitHub Codespaces instead (120 core-hours free per month), and have them verify it before Monday.
+5. Anyone with under 16 GB RAM: have them verify the core profile comes up before Monday. Bring the governance profile up only on Day 5, drop `spark-worker` to one replica, and pair them with someone on a larger machine for the Day 2 tuning lab if it still struggles.
 
 The first Spark job of the week pulls the Delta and hadoop-aws jars from Maven. That needs internet once and then caches. If your venue's connection is unreliable, warm the cache on every machine during setup.
 
