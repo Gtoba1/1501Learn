@@ -30,7 +30,7 @@ export default async function PublicLayout({ children }: { children: React.React
               <Link href="/login" className="text-sm font-semibold text-ink">
                 Sign in
               </Link>
-              <LinkButton href="/signup">Join the Bootcamp</LinkButton>
+              <LinkButton href="/signup">Sign up</LinkButton>
             </>
           )}
         </div>

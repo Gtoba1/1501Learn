@@ -39,7 +39,7 @@ export default async function LandingPage() {
           production platform.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <LinkButton href="/signup">Join the Bootcamp</LinkButton>
+          <LinkButton href="/signup">Sign up</LinkButton>
           <LinkButton href="/login" variant="ghost">
             Sign In
           </LinkButton>
