@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Light is the default and needs no attribute. Dark is opt-in only, set
+   explicitly by the signed-in user's own choice (see profile settings),
+   never by the OS/browser's prefers-color-scheme. */
+:root {
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --ink: #17140f;
+  --muted: #6e6a61;
+  --line: #e3ddcf;
+  --brand: #a9822e;
+  --brand-deep: #8a6a24;
+  --accent: #4b6b4f;
+  --done: #4b6b4f;
+  --warn: #a6432e;
+  --gold: #c08a3d;
+  --focus: #a9822e;
+  --on-brand: #17140f;
+}
+
+:root[data-theme="dark"] {
+  --paper: #14120d;
+  --surface: #1d1a14;
+  --ink: #f3efe6;
+  --muted: #a39c8c;
+  --line: #332e23;
+  --brand: #c6a054;
+  --brand-deep: #a9822e;
+  --accent: #6e9a73;
+  --done: #6e9a73;
+  --warn: #c97157;
+  --gold: #d4ac63;
+  --focus: #c6a054;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-done: var(--done);
+  --color-warn: var(--warn);
+  --color-focus: var(--focus);
+  --color-on-brand: var(--on-brand);
+  --font-sans: var(--font-instrument-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-playfair-display), Georgia, "Times New Roman", serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

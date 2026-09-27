@@ -9,6 +9,9 @@ __pycache__/
 .env
 .env.*
 !.env.example
+supabase.txt
+*.pem
+*.key
 
 # OpenTofu / Terraform
 .terraform/
