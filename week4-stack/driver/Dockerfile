@@ -4,7 +4,10 @@ FROM apache/spark:3.5.3-python3
 
 USER root
 
+# pyspark is pinned to the cluster's version; otherwise delta-spark pulls in
+# the newest 3.5.x and the driver no longer matches the executors.
 RUN pip install --no-cache-dir \
+      pyspark==3.5.3 \
       jupyterlab==4.2.* \
       delta-spark==3.2.0 \
       kafka-python==2.0.* \

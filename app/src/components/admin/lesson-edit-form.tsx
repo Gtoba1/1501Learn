@@ -92,6 +92,35 @@ export function LessonEditForm({
           </div>
         </div>
 
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <Field
+            label="Practice task (markdown)"
+            htmlFor="practice"
+            hint="Shown under the resources. Learners can save an answer and review each other's."
+          >
+            <textarea
+              id="practice"
+              name="practice"
+              rows={8}
+              defaultValue={lesson.practice ?? ""}
+              className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 font-mono text-sm text-ink focus:border-focus"
+            />
+          </Field>
+          <Field
+            label="Example answer (markdown)"
+            htmlFor="practiceAnswer"
+            hint="Hidden until the learner chooses to reveal it, so they can check their own work."
+          >
+            <textarea
+              id="practiceAnswer"
+              name="practiceAnswer"
+              rows={8}
+              defaultValue={lesson.practiceAnswer ?? ""}
+              className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 font-mono text-sm text-ink focus:border-focus"
+            />
+          </Field>
+        </div>
+
         <div className="mt-4 flex items-center gap-2">
           <SubmitButton className="w-auto">Save lesson</SubmitButton>
           {state?.success && <span className="text-xs font-semibold text-done">Saved</span>}

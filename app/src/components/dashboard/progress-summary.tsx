@@ -11,8 +11,13 @@ export function ProgressSummary({ summary }: { summary: CourseProgressSummary })
       </div>
       <ProgressBar percent={summary.percent} />
       <p className="mt-2 text-sm text-muted">
-        {summary.completedLessons} of {summary.totalLessons} lessons completed
+        {summary.modulesComplete} of {summary.modulesTotal} modules completed ·{" "}
+        {summary.completedLessons} of {summary.totalLessons} lessons
         {summary.skippedLessons > 0 && ` · ${summary.skippedLessons} skipped`}
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        A module is complete when every lesson is done and its quiz is passed. The optional module
+        doesn&apos;t count towards your progress.
       </p>
     </Card>
   );

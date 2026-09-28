@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "content:check": "tsx scripts/seed.ts --check",
+    "data": "tsx scripts/generate-shoplink-data.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

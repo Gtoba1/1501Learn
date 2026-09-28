@@ -4,9 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { LessonSidebar } from "@/components/lessons/lesson-sidebar";
 import { MarkdownContent } from "@/components/lessons/markdown-content";
 import { MarkCompleteButton } from "@/components/lessons/mark-complete-button";
+import { PracticeSection } from "@/components/lessons/practice-section";
+import { ResourceList } from "@/components/lessons/resource-list";
 import { VideoEmbed } from "@/components/lessons/video-embed";
 import { recordLessonView } from "@/actions/progress";
 import { getLessonDetail } from "@/lib/data/learning";
+import { getPeerPractice } from "@/lib/data/practice";
 import { getCurrentProfile } from "@/lib/data/profile";
 
 export default async function LessonPage({
@@ -22,6 +25,10 @@ export default async function LessonPage({
   if (!detail) notFound();
 
   await recordLessonView(detail.lesson.id);
+
+  const lessonPath = `/courses/${detail.course.slug}/lessons/${detail.lesson.slug}`;
+  const peer = detail.lesson.practice ? await getPeerPractice(detail.lesson.id) : null;
+  const currentModule = detail.modules.find((m) => m.id === detail.module.id);
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
@@ -51,18 +58,42 @@ export default async function LessonPage({
           </div>
         )}
 
+        <ResourceList resources={detail.resources} lessonTitle={detail.lesson.title} />
+
+        {detail.lesson.practice && peer && (
+          <PracticeSection
+            lessonId={detail.lesson.id}
+            lessonPath={lessonPath}
+            practice={detail.lesson.practice}
+            practiceAnswer={detail.lesson.practiceAnswer}
+            myPractice={detail.myPractice}
+            peer={peer}
+          />
+        )}
+
         {(detail.quiz || detail.assignment) && (
-          <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-5">
-            {detail.quiz && (
-              <Link href={`/courses/${detail.course.slug}/quizzes/${detail.quiz.id}`}>
-                <Badge tone="wait">Checkpoint: {detail.quiz.title}</Badge>
-              </Link>
-            )}
-            {detail.assignment && (
-              <Link href={`/courses/${detail.course.slug}/assignments/${detail.assignment.id}`}>
-                <Badge tone="wait">Project: {detail.assignment.title}</Badge>
-              </Link>
-            )}
+          <div className="mt-8 rounded-xl border border-gold/40 bg-gold/10 p-5">
+            <h2 className="font-display text-lg font-bold">Finish the module</h2>
+            <p className="mt-1 text-sm text-muted">
+              {currentModule?.quizPassed
+                ? "You've passed this module's quiz."
+                : "Pass the module quiz to complete this module."}
+              {detail.assignment && " Then build the project and submit it for feedback."}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {detail.quiz && (
+                <Link href={`/courses/${detail.course.slug}/quizzes/${detail.quiz.id}`}>
+                  <Badge tone={currentModule?.quizPassed ? "done" : "wait"}>
+                    {currentModule?.quizPassed ? "✓ " : ""}Quiz: {detail.quiz.title}
+                  </Badge>
+                </Link>
+              )}
+              {detail.assignment && (
+                <Link href={`/courses/${detail.course.slug}/assignments/${detail.assignment.id}`}>
+                  <Badge tone="wait">Project: {detail.assignment.title}</Badge>
+                </Link>
+              )}
+            </div>
           </div>
         )}
 

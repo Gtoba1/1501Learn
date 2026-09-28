@@ -15,9 +15,9 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "1501 Learn: Data & Analytics Engineering Bootcamp",
+  title: "1501 Learn: Analytics Engineering Bootcamp",
   description:
-    "A cohort-based Data & Analytics Engineering Bootcamp platform: courses, progress tracking, quizzes, assignments and instructor feedback.",
+    "A self-paced Analytics Engineering Bootcamp: SQL, data modelling, Git, dbt, data quality and Snowflake, with quizzes, projects and peer review.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

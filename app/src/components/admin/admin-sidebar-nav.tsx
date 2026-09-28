@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/admin/courses", label: "Courses", Icon: CoursesIcon },
   { href: "/admin/cohorts", label: "Cohorts", Icon: CohortsIcon },
   { href: "/admin/submissions", label: "Submissions", Icon: SubmissionsIcon },
+  { href: "/admin/peer-review", label: "Peer review", Icon: LearnersIcon },
 ];
 
 export function AdminSidebarNav() {

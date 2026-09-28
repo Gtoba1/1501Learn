@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { getCourseStructureWithProgress, type ModuleSummary } from "@/lib/data/learning";
+import {
+  courseProgress,
+  getCourseStructureWithProgress,
+  type LessonResource,
+  type ModuleSummary,
+} from "@/lib/data/learning";
 
 // ---------------------------------------------------------------------------
 // Learner roster
@@ -86,12 +91,7 @@ export async function computeLearnerStats(userIds: string[]): Promise<Map<string
     let progressPercent: number | null = null;
     if (enrollment && course) {
       const modules = await getCourseStructureWithProgress(course.id, userId);
-      const allLessons = modules.flatMap((m) => m.lessons);
-      progressPercent = allLessons.length
-        ? Math.round(
-            (allLessons.filter((l) => l.completed || l.skipped).length / allLessons.length) * 100,
-          )
-        : 0;
+      progressPercent = courseProgress(modules).percent;
     }
 
     const userAttempts = (attempts ?? []).filter((a) => a.user_id === userId);
@@ -371,9 +371,13 @@ export type AdminLessonDetail = {
     description: string | null;
     content: string | null;
     videoUrl: string | null;
+    practice: string | null;
+    practiceAnswer: string | null;
     durationMinutes: number | null;
   };
   course: { id: string; title: string; slug: string };
+  resources: LessonResource[];
+  questions: AdminQuizQuestion[];
   quiz: { id: string; title: string; description: string | null; passingScore: number; maxAttempts: number | null } | null;
   assignment: {
     id: string;
@@ -385,12 +389,20 @@ export type AdminLessonDetail = {
   } | null;
 };
 
+export type AdminQuizQuestion = {
+  id: string;
+  question: string;
+  explanation: string | null;
+  position: number;
+  options: { id: string; optionText: string; isCorrect: boolean; position: number }[];
+};
+
 export async function getLessonForAdmin(lessonId: string): Promise<AdminLessonDetail | null> {
   const supabase = await createClient();
 
   const { data: lesson } = await supabase
     .from("lessons")
-    .select("id, module_id, title, slug, description, content, video_url, duration_minutes")
+    .select("id, module_id, title, slug, description, content, video_url, practice, practice_answer, duration_minutes")
     .eq("id", lessonId)
     .maybeSingle();
   if (!lesson) return null;
@@ -421,6 +433,18 @@ export async function getLessonForAdmin(lessonId: string): Promise<AdminLessonDe
       .maybeSingle(),
   ]);
 
+  const { data: resources } = await supabase
+    .from("lesson_resources")
+    .select("id, kind, title, url, source, note, subscribers, views, likes, published_on, checked_on, duration_minutes")
+    .eq("lesson_id", lessonId)
+    .order("position", { ascending: true });
+
+  // Answers come through a function: quiz_options.is_correct isn't selectable
+  // by the authenticated role at all, admins included.
+  const { data: questions } = quiz
+    ? await supabase.rpc("admin_quiz_questions", { p_quiz_id: quiz.id })
+    : { data: [] };
+
   return {
     lesson: {
       id: lesson.id,
@@ -430,9 +454,26 @@ export async function getLessonForAdmin(lessonId: string): Promise<AdminLessonDe
       description: lesson.description,
       content: lesson.content,
       videoUrl: lesson.video_url,
+      practice: lesson.practice,
+      practiceAnswer: lesson.practice_answer,
       durationMinutes: lesson.duration_minutes,
     },
     course: course ?? { id: "", title: "", slug: "" },
+    resources: (resources ?? []).map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      title: r.title,
+      url: r.url,
+      source: r.source,
+      note: r.note,
+      subscribers: r.subscribers,
+      views: r.views,
+      likes: r.likes,
+      publishedOn: r.published_on,
+      checkedOn: r.checked_on,
+      durationMinutes: r.duration_minutes,
+    })),
+    questions: (questions ?? []) as unknown as AdminQuizQuestion[],
     quiz: quiz
       ? {
           id: quiz.id,

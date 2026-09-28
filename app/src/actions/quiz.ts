@@ -71,7 +71,9 @@ export async function submitQuizAttempt(
     return { error: known ? RPC_ERRORS[known] : "Could not save your attempt. Please try again." };
   }
 
+  // Passing a quiz can complete a module, which shows on the course pages too.
   revalidatePath("/dashboard");
+  revalidatePath("/courses", "layout");
 
   return { result: data as unknown as QuizResult };
 }

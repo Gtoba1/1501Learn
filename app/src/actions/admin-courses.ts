@@ -210,6 +210,8 @@ export async function updateLesson(
 
   const description = formData.get("description")?.toString().trim() || null;
   const content = formData.get("content")?.toString() || null;
+  const practice = formData.get("practice")?.toString().trim() || null;
+  const practiceAnswer = formData.get("practiceAnswer")?.toString().trim() || null;
   const rawVideoUrl = formData.get("videoUrl")?.toString().trim() || null;
   const videoUrl = safeHttpUrl(rawVideoUrl);
   if (rawVideoUrl && !videoUrl) return { error: "Video URL must be a full https:// address." };
@@ -224,6 +226,8 @@ export async function updateLesson(
       ...(slug ? { slug } : {}),
       description,
       content,
+      practice,
+      practice_answer: practiceAnswer,
       video_url: videoUrl,
       duration_minutes: Number.isFinite(durationMinutes) ? durationMinutes : null,
     })

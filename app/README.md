@@ -1,8 +1,8 @@
 # 1501 Learn
 
-A multi-user Learning Management System for the Data & Analytics Engineering Bootcamp, Next.js (App Router) + TypeScript + Tailwind CSS, backed by Supabase (Postgres, Auth, Storage).
+A multi-user Learning Management System for the self-paced Analytics Engineering Bootcamp, Next.js (App Router) + TypeScript + Tailwind CSS, backed by Supabase (Postgres, Auth, Storage).
 
-This is **Phase 1 (Foundation)** of the build: project scaffold, database schema + Row-Level Security, authentication, route protection, and the public landing page. See `../.claude` conversation history or ask the team for the full phased roadmap (LMS core, assessment, admin, cohorts, polish).
+Learners work through 10 core modules and an optional Data Engineering module. Each lesson has content, a resource library (videos, reading, docs), a practice task with a self-check example answer, and optional peer review. Each module ends with a quiz (which must be passed to complete the module) and a project graded by an admin.
 
 ## 1. Create a Supabase project
 
@@ -24,26 +24,37 @@ Fill in the three values from step 1. `.env.local` is git-ignored, never commit 
 
 ## 3. Apply the database schema
 
-Open your project's **SQL Editor** in the Supabase dashboard and run the three migration files **in order**, pasting each one's contents and clicking Run:
+Open your project's **SQL Editor** in the Supabase dashboard and run every file in `supabase/migrations/` **in order** (`0001` to `0008`), pasting each one's contents and clicking Run:
 
-1. `supabase/migrations/0001_init.sql`, tables and indexes
-2. `supabase/migrations/0002_rls.sql`, Row-Level Security policies
-3. `supabase/migrations/0003_trigger_profiles.sql`, auto-creates a `profiles` row for every new signup
+1. `0001_init.sql`, tables and indexes
+2. `0002_rls.sql`, Row-Level Security policies
+3. `0003_trigger_profiles.sql`, auto-creates a `profiles` row for every new signup
+4. `0004` to `0007`, role guards, self-serve enrolment, themes and security hardening
+5. `0008_curriculum_v2.sql`, lesson resources, practice tasks and peer review
 
 (Once the project is linked with the Supabase CLI, these can instead be applied with `supabase db push`.)
 
-## 4. Seed the real curriculum
+## 4. Seed the curriculum
 
-This pulls the existing 4-module ShopLink curriculum straight out of the repo-root `index.html` (its `COURSE` array) and loads it as courses/modules/lessons/quizzes/assignments:
+The course content lives in `content/modules/*.md`, one file per module. The format is documented at the top of `scripts/seed.ts`.
 
 ```bash
 npm install
-npm run seed
+npm run content:check   # parse and validate the module files, no database access
+npm run seed            # rebuild the course in Supabase
 ```
 
-Re-running `npm run seed` is safe, it deletes and re-inserts the course each time.
+Re-running `npm run seed` keeps the course row, so enrollments survive. It deletes and recreates the modules, which also removes learners' progress, quiz attempts, practice answers and project submissions for the old lessons. Small fixes after launch are better made in the admin area.
 
-## 5. Run the app
+## 5. Practice dataset
+
+Learners download the ShopLink practice data from `/datasets/shoplink.zip` and `/datasets/shoplink-batch-2.zip` (served from `public/datasets/`). The zips are generated deterministically by:
+
+```bash
+npm run data
+```
+
+## 6. Run the app
 
 ```bash
 npm run dev
@@ -56,7 +67,7 @@ Visit [http://localhost:3000](http://localhost:3000). Sign up for an account, it
 ```
 src/
   app/            Next.js App Router pages (public site, learner area, admin area)
-  actions/        Server Actions (auth for now)
+  actions/        Server Actions
   components/     UI kit + feature components
   lib/supabase/   Browser + server Supabase clients
   lib/data/       Server-side data-fetching helpers
@@ -67,8 +78,11 @@ src/
   proxy.ts        Route protection (Next.js 16's replacement for middleware.ts)
 supabase/
   migrations/     SQL migrations, apply in order
+content/
+  modules/        One markdown file per module (lessons, resources, practice, quiz, project)
 scripts/
-  seed.ts         Seeds real curriculum content from ../index.html
+  seed.ts                     Loads content/modules into Supabase
+  generate-shoplink-data.ts   Builds the ShopLink practice dataset zips
 ```
 
 ## Roles & security model

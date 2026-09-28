@@ -4,8 +4,11 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import type { CourseProgressSummary } from "@/lib/data/learning";
 
 function statusFor(m: CourseProgressSummary["modules"][number]) {
+  if (m.complete) return { label: "Completed", tone: "done" as const };
   if (m.completed === 0) return { label: "Not started", tone: "neutral" as const };
-  if (m.completed === m.total) return { label: "Completed", tone: "done" as const };
+  if (m.hasQuiz && !m.quizPassed && m.completed === m.total - 1) {
+    return { label: "Quiz to pass", tone: "wait" as const };
+  }
   return { label: "In progress", tone: "wait" as const };
 }
 
@@ -20,11 +23,14 @@ export function ModuleProgressList({ summary }: { summary: CourseProgressSummary
             href={`/courses/${summary.courseSlug}`}
             className="rounded-xl border border-line bg-surface p-4 hover:border-brand"
           >
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="font-semibold">
                 Module {i + 1}: {m.title}
               </span>
-              <Badge tone={status.tone}>{status.label}</Badge>
+              <span className="flex gap-2">
+                {m.isOptional && <Badge tone="neutral">Optional</Badge>}
+                <Badge tone={status.tone}>{status.label}</Badge>
+              </span>
             </div>
             <div className="mt-2 flex items-center gap-3">
               <ProgressBar percent={m.percent} className="flex-1" />

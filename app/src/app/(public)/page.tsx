@@ -3,25 +3,25 @@ import { Card } from "@/components/ui/card";
 import { getPublishedCourseCurriculum } from "@/lib/data/courses";
 
 const SKILLS = [
+  "Analytics Engineering",
+  "Git & GitHub",
+  "Data Warehousing",
   "Advanced SQL",
   "Data Modelling",
-  "Git & GitHub",
   "dbt",
-  "Snowflake",
   "Data Quality",
+  "Snowflake",
   "CI/CD",
-  "Analytics Engineering",
-  "Airflow fundamentals",
   "Capstone Project",
 ];
 
 const EXPERIENCE = [
-  { title: "Practical lessons", body: "Every concept lands in a real ShopLink Distribution dataset, not a toy example." },
-  { title: "Hands-on projects", body: "Each module ends in a deliverable you can put in a portfolio." },
-  { title: "Assignments", body: "Submit work as text, a GitHub link, or a file, reviewed by an instructor." },
-  { title: "Quizzes", body: "Check understanding before moving on, with instant feedback." },
-  { title: "Instructor feedback", body: "Every submission gets a score and written feedback, not just a pass/fail." },
-  { title: "Progress tracking", body: "See exactly how far through the bootcamp you are, at a glance." },
+  { title: "Learn at your own pace", body: "No deadlines. Every lesson shows how long it takes, so you can plan your weeks." },
+  { title: "One real dataset", body: "Every module builds on ShopLink Distribution's data, from raw CSVs to a tested analytics platform." },
+  { title: "Practice with example answers", body: "Try each task yourself, then reveal a worked answer to check your thinking." },
+  { title: "Peer review", body: "Share your practice answers and give feedback on other learners' work." },
+  { title: "Quizzes and projects", body: "Pass a short quiz to finish each module, then build a project you can show employers." },
+  { title: "Instructor feedback", body: "Every project gets a score and written feedback, not just a pass or fail." },
 ];
 
 export default async function LandingPage() {
@@ -31,12 +31,12 @@ export default async function LandingPage() {
     <>
       <section className="mx-auto max-w-6xl px-5 pt-14 pb-8">
         <h1 className="max-w-[14ch] font-display text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
-          Data &amp; Analytics Engineering Bootcamp
+          Analytics Engineering Bootcamp
         </h1>
         <p className="mt-4 max-w-[58ch] text-lg text-muted">
-          Learn modern data transformation, modelling, analytics engineering and data workflows:
-          hands-on, cohort-based, and built around a real business scenario from first query to
-          production platform.
+          Learn to turn raw data into trusted, tested models with SQL, dbt, Git and Snowflake.
+          Self-paced, hands-on, and built around one real business from your first query to a
+          production analytics platform. An optional Data Engineering module goes further.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <LinkButton href="/signup">Sign up</LinkButton>
@@ -70,6 +70,9 @@ export default async function LandingPage() {
                   <div>
                     <h3 className="font-display text-lg font-bold">
                       Module {i + 1}: {module.title}
+                      {module.isOptional && (
+                        <span className="ml-2 align-middle text-xs font-semibold text-muted">(Optional)</span>
+                      )}
                     </h3>
                     {module.description && (
                       <p className="mt-1 text-sm text-muted">{module.description}</p>
@@ -105,7 +108,7 @@ export default async function LandingPage() {
           <Card className="max-w-xl">
             <h3 className="font-display text-lg font-bold">Instructor</h3>
             <p className="mt-1 text-sm text-muted">
-              A working data and analytics engineer who built this bootcamp&apos;s curriculum
+              A working data and analytics engineer who built this course&apos;s curriculum
               around ShopLink Distribution, a fictional Lagos electronics distributor, so every
               lesson answers a real business question.
             </p>

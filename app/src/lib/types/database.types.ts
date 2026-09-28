@@ -19,7 +19,10 @@ type EventType =
   | "assignment_submitted"
   | "assignment_graded"
   | "resource_downloaded"
-  | "module_skipped";
+  | "module_skipped"
+  | "practice_submitted"
+  | "peer_review_given";
+export type ResourceKind = "read" | "watch" | "docs" | "deeper" | "project";
 
 export interface Database {
   public: {
@@ -117,6 +120,8 @@ export interface Database {
           description: string | null;
           content: string | null;
           video_url: string | null;
+          practice: string | null;
+          practice_answer: string | null;
           position: number;
           duration_minutes: number | null;
           created_at: string;
@@ -133,6 +138,90 @@ export interface Database {
             foreignKeyName: "lessons_module_id_fkey";
             columns: ["module_id"];
             referencedRelation: "modules";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lesson_resources: {
+        Row: {
+          id: string;
+          lesson_id: string;
+          kind: ResourceKind;
+          title: string;
+          url: string;
+          source: string | null;
+          note: string | null;
+          subscribers: number | null;
+          views: number | null;
+          likes: number | null;
+          published_on: string | null;
+          checked_on: string | null;
+          duration_minutes: number | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["lesson_resources"]["Row"]> & {
+          lesson_id: string;
+          kind: ResourceKind;
+          title: string;
+          url: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["lesson_resources"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "lesson_resources_lesson_id_fkey";
+            columns: ["lesson_id"];
+            referencedRelation: "lessons";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      practice_responses: {
+        Row: {
+          id: string;
+          lesson_id: string;
+          user_id: string;
+          response_text: string | null;
+          response_url: string | null;
+          share_with_peers: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["practice_responses"]["Row"]> & {
+          lesson_id: string;
+          user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["practice_responses"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "practice_responses_lesson_id_fkey";
+            columns: ["lesson_id"];
+            referencedRelation: "lessons";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      practice_reviews: {
+        Row: {
+          id: string;
+          response_id: string;
+          reviewer_id: string;
+          comment: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["practice_reviews"]["Row"]> & {
+          response_id: string;
+          reviewer_id: string;
+          comment: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["practice_reviews"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "practice_reviews_response_id_fkey";
+            columns: ["response_id"];
+            referencedRelation: "practice_responses";
             referencedColumns: ["id"];
           },
         ];
@@ -355,6 +444,14 @@ export interface Database {
     Functions: {
       submit_quiz_attempt: {
         Args: { p_quiz_id: string; p_answers: Json };
+        Returns: Json;
+      };
+      get_peer_practice: {
+        Args: { p_lesson_id: string };
+        Returns: Json;
+      };
+      admin_quiz_questions: {
+        Args: { p_quiz_id: string };
         Returns: Json;
       };
     };

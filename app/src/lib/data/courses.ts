@@ -9,6 +9,7 @@ export type CourseCurriculum = {
     id: string;
     title: string;
     description: string | null;
+    isOptional: boolean;
     lessonCount: number;
   }[];
 };
@@ -30,7 +31,7 @@ export async function getPublishedCourseCurriculum(): Promise<CourseCurriculum |
 
   const { data: modules } = await supabase
     .from("modules")
-    .select("id, title, description")
+    .select("id, title, description, is_optional")
     .eq("course_id", course.id)
     .order("position", { ascending: true });
 
@@ -50,6 +51,7 @@ export async function getPublishedCourseCurriculum(): Promise<CourseCurriculum |
       id: m.id,
       title: m.title,
       description: m.description,
+      isOptional: m.is_optional,
       lessonCount: lessonCounts.get(m.id) ?? 0,
     })),
   };
