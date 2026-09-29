@@ -1,39 +1,32 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
-import { updatePassword, type ActionState } from "@/actions/auth";
+import Link from "next/link";
 import { AuthCard } from "@/components/auth/auth-card";
-import { NewPasswordFields } from "@/components/auth/new-password-fields";
-import { SubmitButton } from "@/components/auth/submit-button";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
+import { ResetPasswordForm } from "./reset-password-form";
 
-const initialState: ActionState = null;
+// Reached from /auth/confirm once a reset link has been verified, which signs
+// the learner in with a short-lived recovery session.
+export default async function ResetPasswordPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default function ResetPasswordPage() {
-  const [state, formAction] = useActionState(updatePassword, initialState);
-  const [passwordValid, setPasswordValid] = useState(false);
-
-  // The password-reset link lands here with the recovery session in the URL
-  // hash. Instantiating the browser client processes that hash and syncs the
-  // session into cookies, which the updatePassword server action then reads.
-  useEffect(() => {
-    createClient();
-  }, []);
+  if (!user) {
+    return (
+      <AuthCard
+        title="Reset link needed"
+        subtitle="Open the link in your latest reset email, or request a new one. Each link works once and expires after an hour."
+      >
+        <Link href="/forgot-password" className="text-sm font-semibold text-ink underline">
+          Send me a new reset link
+        </Link>
+      </AuthCard>
+    );
+  }
 
   return (
-    <AuthCard
-      title="Choose a new password"
-      subtitle="You followed a reset link. Set a new password below."
-    >
-      <form action={formAction} noValidate>
-        <NewPasswordFields label="New password" onValidityChange={setPasswordValid} />
-        {state?.error && (
-          <p role="alert" className="mb-4 text-sm text-warn">
-            {state.error}
-          </p>
-        )}
-        <SubmitButton disabled={!passwordValid}>Update password</SubmitButton>
-      </form>
+    <AuthCard title="Choose a new password" subtitle={`For ${user.email}. Set a new password below.`}>
+      <ResetPasswordForm />
     </AuthCard>
   );
 }

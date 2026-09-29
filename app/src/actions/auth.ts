@@ -115,6 +115,49 @@ export async function requestPasswordReset(
   return { success: "If that email has an account, a reset link is on its way." };
 }
 
+// Email links (password reset, signup confirmation) point at /auth/confirm
+// with a one-time token hash. Verifying it here, on the server, sets the
+// session cookie directly, so the link works in any browser or device (unlike
+// the PKCE flow, which needs the browser that requested it). It only runs when
+// the learner clicks Continue, so mail scanners that prefetch links can't burn it.
+const LINK_TYPES = {
+  recovery: "/reset-password",
+  email: "/dashboard",
+  signup: "/dashboard",
+  email_change: "/profile",
+} as const;
+type LinkType = keyof typeof LINK_TYPES;
+
+export async function confirmEmailLink(
+  tokenHash: string,
+  type: string,
+  _prev: ActionState,
+): Promise<ActionState> {
+  if (!(type in LINK_TYPES) || !/^[A-Za-z0-9_-]{10,200}$/.test(tokenHash)) {
+    return { error: "This link isn't valid. Request a new one." };
+  }
+
+  const ip = await clientIp();
+  if (!consume(`confirm-link:${ip}`, 10, 15 * MINUTE)) return { error: TOO_MANY_ATTEMPTS };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: type === "signup" ? "email" : (type as Exclude<LinkType, "signup">),
+  });
+  if (error) {
+    return {
+      error:
+        type === "recovery"
+          ? "This reset link has expired or has already been used. Request a new one."
+          : "This link has expired or has already been used.",
+    };
+  }
+
+  revalidatePath("/", "layout");
+  redirect(LINK_TYPES[type as LinkType]);
+}
+
 export async function updatePassword(
   _prev: ActionState,
   formData: FormData,
@@ -131,7 +174,7 @@ export async function updatePassword(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Your reset link has expired. Request a new one." };
+  if (!user) return { error: "Your reset session has ended. Request a new reset link." };
 
   if (!consume(`update-password:${user.id}`, 5, 15 * MINUTE)) return { error: TOO_MANY_ATTEMPTS };
 
