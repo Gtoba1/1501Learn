@@ -16,8 +16,8 @@ export function ProgressSummary({ summary }: { summary: CourseProgressSummary })
         {summary.skippedLessons > 0 && ` · ${summary.skippedLessons} skipped`}
       </p>
       <p className="mt-1 text-xs text-muted">
-        A module is complete when every lesson is done and its quiz is passed. The optional module
-        doesn&apos;t count towards your progress.
+        A module is complete when every lesson is done and its quiz is passed. Optional modules
+        don&apos;t count towards your progress.
       </p>
     </Card>
   );

@@ -21,6 +21,9 @@ export default async function LearnerLayout({ children }: { children: React.Reac
             <Link href="/dashboard" className="text-ink">
               Dashboard
             </Link>
+            <Link href="/tracks" className="text-ink">
+              Tracks
+            </Link>
             <Link href="/profile" className="text-ink">
               Profile
             </Link>

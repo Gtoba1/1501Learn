@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/profile", "/courses", "/admin"];
+const PROTECTED_PREFIXES = ["/dashboard", "/profile", "/courses", "/tracks", "/admin"];
 const ADMIN_PREFIXES = ["/admin"];
 
 function contentSecurityPolicy(nonce: string) {

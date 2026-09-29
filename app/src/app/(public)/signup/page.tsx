@@ -19,7 +19,7 @@ export default function SignUpPage() {
   return (
     <AuthCard
       title="Create your account"
-      subtitle="Join the Analytics Engineering Bootcamp."
+      subtitle="Join 1501 Learn. You'll choose your track next."
       footer={
         <>
           Already have an account?{" "}

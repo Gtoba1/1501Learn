@@ -1,18 +1,29 @@
-// Seeds the 1501 Learn curriculum from content/modules/*.md into Supabase via
-// the service role key.
+// Syncs every course in content/<course>/ into Supabase via the service role key.
 //
 // Usage:
-//   npm run seed           parse every module file, then rebuild the course
+//   npm run seed             parse every course, then sync the database
 //   npm run seed -- --check  parse and validate only, no database access
+//   npm run seed -- --course=analytics-engineering   sync one course only
 //
 // Run after applying supabase/migrations/*.sql.
 //
-// The course row itself is kept (matched by slug), so enrollments survive a
-// reseed. Its modules are deleted and recreated, which cascades to lessons,
-// resources, quizzes, projects, and learners' progress, attempts, practice
-// answers and submissions for the old lessons.
+// The sync updates rows in place instead of recreating them, so learners keep
+// their progress, quiz passes, practice answers and submissions:
+//   - courses match by slug (or a previous slug), modules by title (then by
+//     position), lessons by slug, and each module's quiz and project by the
+//     module they belong to;
+//   - content fields are overwritten from the files, so edits made in the admin
+//     area to seeded lessons are replaced on the next sync;
+//   - modules and lessons that are no longer in the files are deleted, which
+//     removes their progress too;
+//   - a quiz's questions are replaced each time; attempts and pass marks stay.
 //
-// Module file format (one file per module, parsed by src/lib/content/parse-module.ts):
+// Layout:
+//   content/<course-slug>/_course.md   course frontmatter (slug, title, position,
+//                                      tagline, description, previous_slugs)
+//   content/<course-slug>/NN-*.md      one file per module
+//
+// Module file format (parsed by src/lib/content/parse-module.ts):
 //
 //   ---
 //   module: 2
@@ -43,8 +54,8 @@
 //   max_score: 100
 //   <markdown brief>
 
-import { createClient } from "@supabase/supabase-js";
-import { readdirSync, readFileSync } from "node:fs";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
@@ -52,15 +63,20 @@ import { parseModule, type ParsedModule } from "../src/lib/content/parse-module"
 import type { Database } from "../src/lib/types/database.types";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CONTENT_DIR = path.resolve(__dirname, "../content/modules");
+const CONTENT_DIR = path.resolve(__dirname, "../content");
 
-const COURSE = {
-  slug: "analytics-engineering",
-  // Earlier seeds used this slug; the row is renamed in place so enrollments carry over.
-  previousSlugs: ["data-analytics-engineering-bootcamp"],
-  title: "Analytics Engineering Bootcamp",
-  description:
-    "A self-paced course built on ShopLink Distribution, a fictional Lagos electronics distributor. Go from your first advanced SQL query to a tested, documented analytics platform running in the cloud.",
+type Db = SupabaseClient<Database>;
+
+type CourseContent = {
+  dir: string;
+  slug: string;
+  previousSlugs: string[];
+  title: string;
+  position: number;
+  tagline: string | null;
+  description: string | null;
+  files: string[];
+  modules: ParsedModule[];
 };
 
 function slugify(text: string): string {
@@ -72,50 +88,315 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-function loadModules(): ParsedModule[] {
-  const files = readdirSync(CONTENT_DIR)
-    .filter((f) => f.endsWith(".md"))
-    .sort();
-  const modules = files.map((f) => parseModule(readFileSync(path.join(CONTENT_DIR, f), "utf8"), `content/modules/${f}`));
-
-  const numbers = modules.map((m) => m.number);
-  const expected = numbers.map((_, i) => i + 1);
-  if (numbers.join() !== expected.join()) {
-    throw new Error(`Module numbers must run 1..${modules.length} in file order, got ${numbers.join(", ")}`);
+function readFrontmatter(file: string): Map<string, string> {
+  const text = readFileSync(file, "utf8");
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) throw new Error(`${file}: missing --- frontmatter`);
+  const meta = new Map<string, string>();
+  for (const line of match[1].split(/\r?\n/)) {
+    const m = line.match(/^(\w+):\s*(.*?)\s*$/);
+    if (m) meta.set(m[1], m[2]);
   }
-  return modules;
+  return meta;
+}
+
+function loadCourses(): CourseContent[] {
+  const dirs = readdirSync(CONTENT_DIR).filter((d) => {
+    const full = path.join(CONTENT_DIR, d);
+    return statSync(full).isDirectory() && existsSync(path.join(full, "_course.md"));
+  });
+
+  const courses = dirs.map((dir) => {
+    const full = path.join(CONTENT_DIR, dir);
+    const meta = readFrontmatter(path.join(full, "_course.md"));
+    const slug = meta.get("slug") ?? dir;
+    const title = meta.get("title");
+    if (!title) throw new Error(`content/${dir}/_course.md needs title:`);
+
+    const files = readdirSync(full)
+      .filter((f) => f.endsWith(".md") && !f.startsWith("_"))
+      .sort();
+    const modules = files.map((f) => parseModule(readFileSync(path.join(full, f), "utf8"), `content/${dir}/${f}`));
+
+    const numbers = modules.map((m) => m.number).join();
+    const expected = modules.map((_, i) => i + 1).join();
+    if (numbers !== expected) {
+      throw new Error(`content/${dir}: module numbers must run 1..${modules.length} in file order, got ${numbers}`);
+    }
+
+    return {
+      dir,
+      slug,
+      previousSlugs: (meta.get("previous_slugs") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+      title,
+      position: Number(meta.get("position") ?? 0),
+      tagline: meta.get("tagline") || null,
+      description: meta.get("description") || null,
+      files,
+      modules,
+    };
+  });
+
+  return courses.sort((a, b) => a.position - b.position);
 }
 
 // Style checks that don't break the parser but should be fixed before publishing.
-function lint(modules: ParsedModule[], files: string[]) {
+function lint(course: CourseContent) {
   const warnings: string[] = [];
-  for (const f of files) {
-    const text = readFileSync(path.join(CONTENT_DIR, f), "utf8");
+  for (const f of course.files) {
+    const text = readFileSync(path.join(CONTENT_DIR, course.dir, f), "utf8");
     text.split(/\r?\n/).forEach((line, i) => {
-      if (/[–—]/.test(line)) warnings.push(`${f}:${i + 1}: contains an en or em dash`);
+      if (/[–—]/.test(line)) warnings.push(`${course.dir}/${f}:${i + 1}: contains an en or em dash`);
     });
   }
-  for (const m of modules) {
-    if (!m.quiz) warnings.push(`module ${m.number}: no quiz`);
+  for (const m of course.modules) {
+    const where = `${course.dir} module ${m.number}`;
+    if (!m.quiz) warnings.push(`${where}: no quiz`);
     else if (m.quiz.questions.length < 3 || m.quiz.questions.length > 5) {
-      warnings.push(`module ${m.number}: quiz has ${m.quiz.questions.length} questions (aim for 3 to 5)`);
+      warnings.push(`${where}: quiz has ${m.quiz.questions.length} questions (aim for 3 to 5)`);
     }
-    if (!m.project) warnings.push(`module ${m.number}: no project`);
+    if (!m.project) warnings.push(`${where}: no project`);
     else {
       const points = [...m.project.instructions.matchAll(/^\|[^|\n]+\|\s*(\d+)\s*\|\s*$/gm)].reduce(
         (sum, match) => sum + Number(match[1]),
         0,
       );
       if (points && points !== m.project.maxScore) {
-        warnings.push(`module ${m.number}: grading guide adds up to ${points}, max_score is ${m.project.maxScore}`);
+        warnings.push(`${where}: grading guide adds up to ${points}, max_score is ${m.project.maxScore}`);
       }
     }
-    for (const l of m.lessons) if (!l.minutes) warnings.push(`module ${m.number}: lesson "${l.title}" has no minutes`);
+    for (const l of m.lessons) if (!l.minutes) warnings.push(`${where}: lesson "${l.title}" has no minutes`);
   }
   return warnings;
 }
 
-async function seed(modules: ParsedModule[]) {
+function check<T>(result: { data: T; error: unknown }, what: string): T {
+  if (result.error) throw new Error(`${what}: ${(result.error as { message?: string }).message ?? result.error}`);
+  return result.data;
+}
+
+async function syncCourse(supabase: Db, course: CourseContent, claimedSlugs: Map<string, string>) {
+  const { data: existing } = await supabase
+    .from("courses")
+    .select("id, slug")
+    .in("slug", [course.slug, ...course.previousSlugs]);
+  const current = existing?.find((c) => c.slug === course.slug) ?? existing?.[0];
+
+  const courseFields = {
+    title: course.title,
+    slug: course.slug,
+    description: course.description,
+    tagline: course.tagline,
+    position: course.position,
+    status: "published" as const,
+  };
+  const courseId = current
+    ? (check(await supabase.from("courses").update(courseFields).eq("id", current.id), "update course"), current.id)
+    : check(await supabase.from("courses").insert(courseFields).select("id").single(), "insert course")!.id;
+
+  // Existing rows for this course.
+  const oldModules = check(
+    await supabase.from("modules").select("id, title, position").eq("course_id", courseId),
+    "load modules",
+  ) ?? [];
+  const oldModuleIds = oldModules.map((m) => m.id);
+  const oldLessons = oldModuleIds.length
+    ? check(await supabase.from("lessons").select("id, slug, module_id").in("module_id", oldModuleIds), "load lessons") ?? []
+    : [];
+  const lessonBySlug = new Map(oldLessons.map((l) => [l.slug, l]));
+
+  // Lesson slugs are unique across the whole table: a slug another course
+  // already uses gets this course's short suffix.
+  const courseSuffix = course.slug.split("-").map((w) => w[0]).join("");
+  const usedHere = new Set<string>();
+  const slugFor = (title: string, moduleNumber: number) => {
+    const base = slugify(title);
+    const candidates = [base, `${base}-${courseSuffix}`, `${base}-${courseSuffix}-m${moduleNumber}`];
+    for (const slug of candidates) {
+      const owner = claimedSlugs.get(slug);
+      if (!usedHere.has(slug) && (!owner || owner === course.slug)) {
+        usedHere.add(slug);
+        claimedSlugs.set(slug, course.slug);
+        return slug;
+      }
+    }
+    throw new Error(`no free slug for lesson "${title}"`);
+  };
+
+  const keptModuleIds = new Set<string>();
+  const keptLessonIds = new Set<string>();
+  const unmatched = [...oldModules];
+
+  for (const [moduleIndex, mod] of course.modules.entries()) {
+    const matchAt =
+      unmatched.findIndex((m) => m.title === mod.title) !== -1
+        ? unmatched.findIndex((m) => m.title === mod.title)
+        : unmatched.findIndex((m) => m.position === moduleIndex);
+    const match = matchAt === -1 ? null : unmatched.splice(matchAt, 1)[0];
+
+    const moduleFields = {
+      course_id: courseId,
+      title: mod.title,
+      description: mod.summary,
+      position: moduleIndex,
+      is_optional: mod.optional,
+    };
+    const moduleId = match
+      ? (check(await supabase.from("modules").update(moduleFields).eq("id", match.id), "update module"), match.id)
+      : check(await supabase.from("modules").insert(moduleFields).select("id").single(), "insert module")!.id;
+    keptModuleIds.add(moduleId);
+
+    const lessonIds: string[] = [];
+    for (const [lessonIndex, lesson] of mod.lessons.entries()) {
+      const slug = slugFor(lesson.title, mod.number);
+      const fields = {
+        module_id: moduleId,
+        title: lesson.title,
+        slug,
+        content: lesson.content,
+        practice: lesson.practice,
+        practice_answer: lesson.practiceAnswer,
+        position: lessonIndex,
+        duration_minutes: lesson.minutes,
+      };
+      const existingLesson = lessonBySlug.get(slug);
+      const lessonId = existingLesson
+        ? (check(await supabase.from("lessons").update(fields).eq("id", existingLesson.id), "update lesson"),
+          existingLesson.id)
+        : check(await supabase.from("lessons").insert(fields).select("id").single(), `insert lesson ${slug}`)!.id;
+      lessonIds.push(lessonId);
+      keptLessonIds.add(lessonId);
+
+      check(await supabase.from("lesson_resources").delete().eq("lesson_id", lessonId), "clear resources");
+      check(
+        await supabase.from("lesson_resources").insert(
+          lesson.resources.map((r, position) => ({
+            lesson_id: lessonId,
+            kind: r.kind,
+            title: r.title,
+            url: r.url,
+            source: r.source,
+            note: r.note,
+            subscribers: r.subscribers,
+            views: r.views,
+            likes: r.likes,
+            published_on: r.publishedOn,
+            checked_on: r.checkedOn,
+            duration_minutes: r.durationMinutes,
+            position,
+          })),
+        ),
+        "insert resources",
+      );
+    }
+
+    // The module quiz and project live on the module's final lesson. Reuse the
+    // existing rows (moving them if the final lesson changed) so attempts and
+    // submissions stay attached.
+    const finalLessonId = lessonIds[lessonIds.length - 1];
+    const [{ data: quizzes }, { data: assignments }] = await Promise.all([
+      supabase.from("quizzes").select("id, lesson_id").in("lesson_id", lessonIds),
+      supabase.from("assignments").select("id, lesson_id").in("lesson_id", lessonIds),
+    ]);
+    const existingQuiz = quizzes?.find((q) => q.lesson_id === finalLessonId) ?? quizzes?.[0];
+    const existingAssignment = assignments?.find((a) => a.lesson_id === finalLessonId) ?? assignments?.[0];
+
+    if (mod.quiz) {
+      const quizFields = {
+        lesson_id: finalLessonId,
+        title: `${mod.title} quiz`,
+        description: `${mod.quiz.questions.length} questions. Pass with ${mod.quiz.passingScore}% to complete the module.`,
+        passing_score: mod.quiz.passingScore,
+      };
+      const quizId = existingQuiz
+        ? (check(await supabase.from("quizzes").update(quizFields).eq("id", existingQuiz.id), "update quiz"),
+          existingQuiz.id)
+        : check(await supabase.from("quizzes").insert(quizFields).select("id").single(), "insert quiz")!.id;
+
+      check(await supabase.from("quiz_questions").delete().eq("quiz_id", quizId), "clear questions");
+      for (const [qIndex, q] of mod.quiz.questions.entries()) {
+        const question = check(
+          await supabase
+            .from("quiz_questions")
+            .insert({ quiz_id: quizId, question: q.question, explanation: q.explanation, position: qIndex })
+            .select("id")
+            .single(),
+          "insert question",
+        )!;
+        check(
+          await supabase.from("quiz_options").insert(
+            q.options.map((o, position) => ({
+              question_id: question.id,
+              option_text: o.text,
+              is_correct: o.correct,
+              position,
+            })),
+          ),
+          "insert options",
+        );
+      }
+    } else if (existingQuiz) {
+      check(await supabase.from("quizzes").delete().eq("id", existingQuiz.id), "delete quiz");
+    }
+
+    if (mod.project) {
+      const projectFields = {
+        lesson_id: finalLessonId,
+        title: mod.project.title,
+        description: mod.project.description,
+        instructions: mod.project.instructions,
+        max_score: mod.project.maxScore,
+      };
+      if (existingAssignment) {
+        check(
+          await supabase.from("assignments").update(projectFields).eq("id", existingAssignment.id),
+          "update project",
+        );
+      } else {
+        check(await supabase.from("assignments").insert(projectFields), "insert project");
+      }
+    } else if (existingAssignment) {
+      check(await supabase.from("assignments").delete().eq("id", existingAssignment.id), "delete project");
+    }
+
+    const resources = mod.lessons.reduce((n, l) => n + l.resources.length, 0);
+    console.log(
+      `  module ${mod.number}: ${mod.title} (${mod.lessons.length} lessons, ${resources} resources, ` +
+        `${mod.quiz?.questions.length ?? 0} quiz questions${mod.project ? ", 1 project" : ""})`,
+    );
+  }
+
+  // Anything no longer in the files.
+  const staleLessons = oldLessons.filter((l) => !keptLessonIds.has(l.id)).map((l) => l.id);
+  if (staleLessons.length) {
+    check(await supabase.from("lessons").delete().in("id", staleLessons), "delete stale lessons");
+    console.log(`  removed ${staleLessons.length} lessons no longer in the content`);
+  }
+  const staleModules = oldModules.filter((m) => !keptModuleIds.has(m.id)).map((m) => m.id);
+  if (staleModules.length) {
+    check(await supabase.from("modules").delete().in("id", staleModules), "delete stale modules");
+    console.log(`  removed ${staleModules.length} modules no longer in the content`);
+  }
+}
+
+async function main() {
+  const courses = loadCourses();
+
+  for (const course of courses) {
+    const lessons = course.modules.flatMap((m) => m.lessons);
+    const coreMinutes = course.modules
+      .filter((m) => !m.optional)
+      .flatMap((m) => m.lessons)
+      .reduce((s, l) => s + (l.minutes ?? 0), 0);
+    console.log(
+      `${course.title}: ${course.modules.length} modules, ${lessons.length} lessons, ` +
+        `${lessons.reduce((n, l) => n + l.resources.length, 0)} resources; core lessons total ${Math.round(coreMinutes / 60)} hours.`,
+    );
+    for (const w of lint(course)) console.warn(`warning: ${w}`);
+  }
+
+  if (process.argv.includes("--check")) return;
+
   dotenv.config({ path: path.resolve(__dirname, "../.env.local"), quiet: true });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -124,168 +405,32 @@ async function seed(modules: ParsedModule[]) {
   }
   const supabase = createClient<Database>(url, serviceRoleKey);
 
-  const { data: existing, error: findError } = await supabase
-    .from("courses")
-    .select("id, slug")
-    .in("slug", [COURSE.slug, ...COURSE.previousSlugs]);
-  if (findError) throw findError;
-
-  const current = existing?.find((c) => c.slug === COURSE.slug) ?? existing?.[0];
-  let courseId: string;
-  if (current) {
-    const { error } = await supabase
-      .from("courses")
-      .update({ title: COURSE.title, slug: COURSE.slug, description: COURSE.description, status: "published" })
-      .eq("id", current.id);
-    if (error) throw error;
-    courseId = current.id;
-
-    const { error: wipeError } = await supabase.from("modules").delete().eq("course_id", courseId);
-    if (wipeError) throw wipeError;
-  } else {
-    const { data, error } = await supabase
-      .from("courses")
-      .insert({ title: COURSE.title, slug: COURSE.slug, description: COURSE.description, status: "published" })
-      .select("id")
-      .single();
-    if (error || !data) throw error ?? new Error("Course insert returned no row");
-    courseId = data.id;
+  // Which course owns each lesson slug today, so slugs stay stable across syncs.
+  const { data: allLessons } = await supabase.from("lessons").select("slug, module_id");
+  const { data: allModules } = await supabase.from("modules").select("id, course_id");
+  const { data: allCourses } = await supabase.from("courses").select("id, slug");
+  const courseSlugById = new Map((allCourses ?? []).map((c) => [c.id, c.slug]));
+  const courseByModule = new Map((allModules ?? []).map((m) => [m.id, courseSlugById.get(m.course_id)]));
+  const renamed = new Map(courses.flatMap((c) => c.previousSlugs.map((p) => [p, c.slug] as const)));
+  const claimedSlugs = new Map<string, string>();
+  for (const l of allLessons ?? []) {
+    const owner = courseByModule.get(l.module_id);
+    if (owner) claimedSlugs.set(l.slug, renamed.get(owner) ?? owner);
   }
 
-  // Lesson slugs are unique across the whole table.
-  const { data: otherLessons } = await supabase.from("lessons").select("slug");
-  const usedSlugs = new Set((otherLessons ?? []).map((l) => l.slug));
-  const uniqueSlug = (title: string, moduleNumber: number) => {
-    const base = slugify(title);
-    let slug = usedSlugs.has(base) ? `${base}-m${moduleNumber}` : base;
-    for (let n = 2; usedSlugs.has(slug); n++) slug = `${base}-m${moduleNumber}-${n}`;
-    usedSlugs.add(slug);
-    return slug;
-  };
+  // --course=<slug> syncs just that course, e.g. while another is being written.
+  const only = process.argv.find((a) => a.startsWith("--course="))?.slice("--course=".length);
 
-  for (const [moduleIndex, mod] of modules.entries()) {
-    const { data: moduleRow, error: moduleError } = await supabase
-      .from("modules")
-      .insert({
-        course_id: courseId,
-        title: mod.title,
-        description: mod.summary,
-        position: moduleIndex,
-        is_optional: mod.optional,
-      })
-      .select("id")
-      .single();
-    if (moduleError || !moduleRow) throw moduleError ?? new Error("Module insert returned no row");
-
-    const lessonIds: string[] = [];
-    for (const [lessonIndex, lesson] of mod.lessons.entries()) {
-      const { data: lessonRow, error: lessonError } = await supabase
-        .from("lessons")
-        .insert({
-          module_id: moduleRow.id,
-          title: lesson.title,
-          slug: uniqueSlug(lesson.title, mod.number),
-          content: lesson.content,
-          practice: lesson.practice,
-          practice_answer: lesson.practiceAnswer,
-          position: lessonIndex,
-          duration_minutes: lesson.minutes,
-        })
-        .select("id")
-        .single();
-      if (lessonError || !lessonRow) throw lessonError ?? new Error("Lesson insert returned no row");
-      lessonIds.push(lessonRow.id);
-
-      const { error: resourceError } = await supabase.from("lesson_resources").insert(
-        lesson.resources.map((r, position) => ({
-          lesson_id: lessonRow.id,
-          kind: r.kind,
-          title: r.title,
-          url: r.url,
-          source: r.source,
-          note: r.note,
-          subscribers: r.subscribers,
-          views: r.views,
-          likes: r.likes,
-          published_on: r.publishedOn,
-          checked_on: r.checkedOn,
-          duration_minutes: r.durationMinutes,
-          position,
-        })),
-      );
-      if (resourceError) throw resourceError;
+  for (const course of courses) {
+    if (only && course.slug !== only) continue;
+    // Never publish an empty track while its content is still being written.
+    if (!course.modules.length) {
+      console.log(`Skipping ${course.title}: no module files yet`);
+      continue;
     }
-
-    // Module-level quiz and project attach to the module's final lesson.
-    const finalLessonId = lessonIds[lessonIds.length - 1];
-
-    if (mod.quiz) {
-      const { data: quizRow, error: quizError } = await supabase
-        .from("quizzes")
-        .insert({
-          lesson_id: finalLessonId,
-          title: `${mod.title} quiz`,
-          description: `${mod.quiz.questions.length} questions. Pass with ${mod.quiz.passingScore}% to complete the module.`,
-          passing_score: mod.quiz.passingScore,
-        })
-        .select("id")
-        .single();
-      if (quizError || !quizRow) throw quizError ?? new Error("Quiz insert returned no row");
-
-      for (const [qIndex, q] of mod.quiz.questions.entries()) {
-        const { data: questionRow, error: questionError } = await supabase
-          .from("quiz_questions")
-          .insert({ quiz_id: quizRow.id, question: q.question, explanation: q.explanation, position: qIndex })
-          .select("id")
-          .single();
-        if (questionError || !questionRow) throw questionError ?? new Error("Question insert returned no row");
-
-        const { error: optionsError } = await supabase.from("quiz_options").insert(
-          q.options.map((o, position) => ({
-            question_id: questionRow.id,
-            option_text: o.text,
-            is_correct: o.correct,
-            position,
-          })),
-        );
-        if (optionsError) throw optionsError;
-      }
-    }
-
-    if (mod.project) {
-      const { error: assignmentError } = await supabase.from("assignments").insert({
-        lesson_id: finalLessonId,
-        title: mod.project.title,
-        description: mod.project.description,
-        instructions: mod.project.instructions,
-        max_score: mod.project.maxScore,
-      });
-      if (assignmentError) throw assignmentError;
-    }
-
-    const resources = mod.lessons.reduce((n, l) => n + l.resources.length, 0);
-    console.log(
-      `Seeded module ${mod.number}: ${mod.title} (${mod.lessons.length} lessons, ${resources} resources, ` +
-        `${mod.quiz?.questions.length ?? 0} quiz questions${mod.project ? ", 1 project" : ""})`,
-    );
+    console.log(`Syncing ${course.title}`);
+    await syncCourse(supabase, course, claimedSlugs);
   }
-}
-
-async function main() {
-  const files = readdirSync(CONTENT_DIR).filter((f) => f.endsWith(".md")).sort();
-  const modules = loadModules();
-  const warnings = lint(modules, files);
-
-  const lessons = modules.flatMap((m) => m.lessons);
-  const coreMinutes = modules.filter((m) => !m.optional).flatMap((m) => m.lessons).reduce((s, l) => s + (l.minutes ?? 0), 0);
-  console.log(
-    `Parsed ${modules.length} modules, ${lessons.length} lessons, ` +
-      `${lessons.reduce((n, l) => n + l.resources.length, 0)} resources; core lessons total ${Math.round(coreMinutes / 60)} hours.`,
-  );
-  for (const w of warnings) console.warn(`warning: ${w}`);
-
-  if (process.argv.includes("--check")) return;
-  await seed(modules);
   console.log("Seed complete.");
 }
 

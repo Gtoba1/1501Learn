@@ -1,23 +1,10 @@
 import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getPublishedCourseCurriculum } from "@/lib/data/courses";
-
-const SKILLS = [
-  "Analytics Engineering",
-  "Git & GitHub",
-  "Data Warehousing",
-  "Advanced SQL",
-  "Data Modelling",
-  "dbt",
-  "Data Quality",
-  "Snowflake",
-  "CI/CD",
-  "Capstone Project",
-];
+import { getPublishedTracks } from "@/lib/data/courses";
 
 const EXPERIENCE = [
   { title: "Learn at your own pace", body: "No deadlines. Every lesson shows how long it takes, so you can plan your weeks." },
-  { title: "One real dataset", body: "Every module builds on ShopLink Distribution's data, from raw CSVs to a tested analytics platform." },
+  { title: "One real business", body: "Every module builds on ShopLink Distribution's data, from raw CSVs to a working platform." },
   { title: "Practice with example answers", body: "Try each task yourself, then reveal a worked answer to check your thinking." },
   { title: "Peer review", body: "Share your practice answers and give feedback on other learners' work." },
   { title: "Quizzes and projects", body: "Pass a short quiz to finish each module, then build a project you can show employers." },
@@ -25,18 +12,18 @@ const EXPERIENCE = [
 ];
 
 export default async function LandingPage() {
-  const curriculum = await getPublishedCourseCurriculum();
+  const tracks = await getPublishedTracks();
 
   return (
     <>
       <section className="mx-auto max-w-6xl px-5 pt-14 pb-8">
-        <h1 className="max-w-[14ch] font-display text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
-          Analytics Engineering Bootcamp
+        <h1 className="max-w-[18ch] font-display text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
+          Become a data engineer or an analytics engineer
         </h1>
-        <p className="mt-4 max-w-[58ch] text-lg text-muted">
-          Learn to turn raw data into trusted, tested models with SQL, dbt, Git and Snowflake.
-          Self-paced, hands-on, and built around one real business from your first query to a
-          production analytics platform. An optional Data Engineering module goes further.
+        <p className="mt-4 max-w-[60ch] text-lg text-muted">
+          Two self-paced, hands-on tracks built around one real business. Learn to build the
+          pipelines that move data, or the tested models that turn it into answers. Pick a track
+          after you sign up, and switch any time.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <LinkButton href="/signup">Sign up</LinkButton>
@@ -46,41 +33,34 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-line py-10">
-        <div className="mx-auto max-w-6xl px-5">
-          <h2 className="mb-5 font-display text-2xl font-bold">What you&apos;ll learn</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-            {SKILLS.map((skill) => (
-              <Card key={skill} className="text-center text-sm font-semibold">
-                {skill}
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {curriculum && (
+      {tracks.length > 0 && (
         <section className="border-t border-line py-10">
           <div className="mx-auto max-w-6xl px-5">
-            <h2 className="mb-1 font-display text-2xl font-bold">Course curriculum</h2>
-            <p className="mb-5 text-muted">{curriculum.title}</p>
-            <div className="grid gap-3.5">
-              {curriculum.modules.map((module, i) => (
-                <Card key={module.id} className="flex items-baseline justify-between gap-4">
-                  <div>
-                    <h3 className="font-display text-lg font-bold">
-                      Module {i + 1}: {module.title}
-                      {module.isOptional && (
-                        <span className="ml-2 align-middle text-xs font-semibold text-muted">(Optional)</span>
-                      )}
-                    </h3>
-                    {module.description && (
-                      <p className="mt-1 text-sm text-muted">{module.description}</p>
-                    )}
-                  </div>
-                  <span className="shrink-0 text-sm font-semibold text-muted">
-                    {module.lessonCount} lesson{module.lessonCount === 1 ? "" : "s"}
-                  </span>
+            <h2 className="mb-5 font-display text-2xl font-bold">Choose your track</h2>
+            <div className="grid gap-5 md:grid-cols-2">
+              {tracks.map((track) => (
+                <Card key={track.id} className="flex flex-col">
+                  <h3 className="font-display text-2xl font-bold">{track.title}</h3>
+                  {track.tagline && <p className="mt-2 font-semibold text-ink">{track.tagline}</p>}
+                  <p className="mt-2 text-xs text-muted">
+                    {track.modules.filter((m) => !m.isOptional).length} modules · {track.lessonCount} lessons ·
+                    about {Math.round(track.minutes / 60)} hours of lessons, plus projects
+                  </p>
+                  <ol className="mt-4 grid gap-2">
+                    {track.modules.map((module, i) => (
+                      <li key={module.id} className="flex items-baseline justify-between gap-3 text-sm">
+                        <span>
+                          <span className="font-semibold">
+                            {i + 1}. {module.title}
+                          </span>
+                          {module.isOptional && <span className="ml-1 text-xs text-muted">(Optional)</span>}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted">
+                          {module.lessonCount} lesson{module.lessonCount === 1 ? "" : "s"}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
                 </Card>
               ))}
             </div>
@@ -108,9 +88,9 @@ export default async function LandingPage() {
           <Card className="max-w-xl">
             <h3 className="font-display text-lg font-bold">Instructor</h3>
             <p className="mt-1 text-sm text-muted">
-              A working data and analytics engineer who built this course&apos;s curriculum
-              around ShopLink Distribution, a fictional Lagos electronics distributor, so every
-              lesson answers a real business question.
+              A working data and analytics engineer who built both tracks around ShopLink
+              Distribution, a fictional Lagos electronics distributor, so every lesson answers a
+              real business question.
             </p>
           </Card>
         </div>

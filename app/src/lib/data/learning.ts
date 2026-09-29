@@ -159,6 +159,19 @@ export async function getCourseBySlug(slug: string) {
   return data;
 }
 
+// The track the learner is following now (one at a time), if any.
+export async function getActiveCourseId(userId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("enrollments")
+    .select("course_id")
+    .eq("user_id", userId)
+    .in("status", ["active", "completed"])
+    .limit(1)
+    .maybeSingle();
+  return data?.course_id ?? null;
+}
+
 async function getEnrollmentStatus(courseId: string, userId: string) {
   const supabase = await createClient();
   const { data } = await supabase

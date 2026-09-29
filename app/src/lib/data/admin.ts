@@ -85,7 +85,9 @@ export async function computeLearnerStats(userIds: string[]): Promise<Map<string
     .in("user_id", userIds);
 
   for (const userId of userIds) {
-    const enrollment = (enrollments ?? []).find((e) => e.user_id === userId);
+    // Learners follow one track at a time; prefer it over tracks they switched away from.
+    const mine = (enrollments ?? []).filter((e) => e.user_id === userId);
+    const enrollment = mine.find((e) => e.status !== "dropped") ?? mine[0];
     const course = enrollment ? courseById.get(enrollment.course_id) : undefined;
 
     let progressPercent: number | null = null;
@@ -179,11 +181,13 @@ export async function getLearnerDetail(userId: string): Promise<LearnerDetail | 
     .maybeSingle();
   if (!profile) return null;
 
-  const { data: enrollmentRow } = await supabase
+  // A learner who switched tracks has one row per track; show the current one.
+  const { data: enrollmentRows } = await supabase
     .from("enrollments")
     .select("course_id, status, enrolled_at")
     .eq("user_id", userId)
-    .maybeSingle();
+    .order("enrolled_at", { ascending: false });
+  const enrollmentRow = enrollmentRows?.find((e) => e.status !== "dropped") ?? enrollmentRows?.[0] ?? null;
 
   let enrollment: LearnerDetail["enrollment"] = null;
   let modules: ModuleSummary[] = [];

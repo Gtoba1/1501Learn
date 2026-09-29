@@ -2,7 +2,7 @@
 
 A multi-user Learning Management System for the self-paced Analytics Engineering Bootcamp, Next.js (App Router) + TypeScript + Tailwind CSS, backed by Supabase (Postgres, Auth, Storage).
 
-Learners work through 10 core modules and an optional Data Engineering module. Each lesson has content, a resource library (videos, reading, docs), a practice task with a self-check example answer, and optional peer review. Each module ends with a quiz (which must be passed to complete the module) and a project graded by an admin.
+There are two tracks, **Analytics Engineering** and **Data Engineering**, each a 10-module course. Learners choose one track on their dashboard after signing up and can switch later; progress in each track is kept. Each lesson has content, a resource library (videos, reading, docs), a practice task with a self-check example answer, and optional peer review. Each module ends with a quiz (which must be passed to complete the module) and a project graded by an admin.
 
 ## 1. Create a Supabase project
 
@@ -24,19 +24,20 @@ Fill in the three values from step 1. `.env.local` is git-ignored, never commit 
 
 ## 3. Apply the database schema
 
-Open your project's **SQL Editor** in the Supabase dashboard and run every file in `supabase/migrations/` **in order** (`0001` to `0008`), pasting each one's contents and clicking Run:
+Open your project's **SQL Editor** in the Supabase dashboard and run every file in `supabase/migrations/` **in order** (`0001` to `0009`), pasting each one's contents and clicking Run:
 
 1. `0001_init.sql`, tables and indexes
 2. `0002_rls.sql`, Row-Level Security policies
 3. `0003_trigger_profiles.sql`, auto-creates a `profiles` row for every new signup
 4. `0004` to `0007`, role guards, self-serve enrolment, themes and security hardening
 5. `0008_curriculum_v2.sql`, lesson resources, practice tasks and peer review
+6. `0009_tracks.sql`, the track picker (no auto-enrollment at signup; `choose_track` switches tracks)
 
 (Once the project is linked with the Supabase CLI, these can instead be applied with `supabase db push`.)
 
 ## 4. Seed the curriculum
 
-The course content lives in `content/modules/*.md`, one file per module. The format is documented at the top of `scripts/seed.ts`.
+Each track lives in its own folder: `content/<course-slug>/_course.md` holds the course details and `content/<course-slug>/NN-*.md` holds one file per module. The format is documented at the top of `scripts/seed.ts`.
 
 ```bash
 npm install
@@ -44,7 +45,7 @@ npm run content:check   # parse and validate the module files, no database acces
 npm run seed            # rebuild the course in Supabase
 ```
 
-Re-running `npm run seed` keeps the course row, so enrollments survive. It deletes and recreates the modules, which also removes learners' progress, quiz attempts, practice answers and project submissions for the old lessons. Small fixes after launch are better made in the admin area.
+`npm run seed` syncs rather than rebuilds: it updates courses, modules, lessons, quizzes and projects in place (matching lessons by slug), so learners keep their progress, quiz passes, practice answers and submissions. Only modules and lessons removed from the files are deleted. Content edited in the admin area for a seeded lesson is overwritten on the next sync, so make lasting changes in the markdown files.
 
 ## 5. Practice dataset
 
@@ -79,7 +80,8 @@ src/
 supabase/
   migrations/     SQL migrations, apply in order
 content/
-  modules/        One markdown file per module (lessons, resources, practice, quiz, project)
+  analytics-engineering/   One markdown file per module, plus _course.md
+  data-engineering/        The same, for the Data Engineering track
 scripts/
   seed.ts                     Loads content/modules into Supabase
   generate-shoplink-data.ts   Builds the ShopLink practice dataset zips

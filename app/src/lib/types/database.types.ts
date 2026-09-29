@@ -75,6 +75,8 @@ export interface Database {
           slug: string;
           description: string | null;
           thumbnail_url: string | null;
+          tagline: string | null;
+          position: number;
           status: CourseStatus;
           created_at: string;
           updated_at: string;
@@ -453,6 +455,10 @@ export interface Database {
       admin_quiz_questions: {
         Args: { p_quiz_id: string };
         Returns: Json;
+      };
+      choose_track: {
+        Args: { p_course_id: string };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;

@@ -40,7 +40,7 @@ export default async function PublicLayout({ children }: { children: React.React
       </main>
       <footer className="border-t border-line py-8 text-sm text-muted">
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-3 px-5">
-          <span>Analytics Engineering Bootcamp, built on ShopLink Distribution.</span>
+          <span>Analytics Engineering and Data Engineering, built on ShopLink Distribution.</span>
           <div className="flex gap-4">
             <Link href="/login" className="underline">
               Sign in
